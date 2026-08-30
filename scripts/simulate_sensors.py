@@ -36,8 +36,8 @@ except ImportError:
     sys.exit(1)
 
 ZONE_IDS = [
-    "dharali", "bhagirathi_view", "pine_ridge", "kedarnath_valley",
-    "riverbend", "cloudrest", "mandla_slope", "himalayan_gate",
+    "dharali", "harsil", "uttarkashi", "sonprayag",
+    "gaurikund", "kedarnath", "raini", "joshimath",
 ]
 
 ESCALATION_STEPS = [

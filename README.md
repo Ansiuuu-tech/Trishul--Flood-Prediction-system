@@ -2,7 +2,7 @@
 
 **Three signals. One warning. An open-source, hyper-local early-warning platform for flash floods and landslides in Himalayan hill regions.**
 
-> ⚠️ **Demo Mode.** Trishul is a decision-support prototype built for a hackathon. It is **not certified for operational emergency decisions**. All zones, coordinates, and historical events are fictional.
+> ⚠️ **Demo Mode.** Trishul is a decision-support prototype built for a hackathon. It is **not certified for operational emergency decisions**.
 
 Trishul fuses rainfall, soil moisture, slope tilt, vibration, static terrain susceptibility, and historical-incident data into an explainable 0–100 risk score per zone, classified as **Safe / Watch / Warning / Evacuate**, with reasons, a recommended action, and an estimated lead time — updated live over WebSockets.
 
@@ -246,7 +246,7 @@ An alternative to the built-in engine — useful for hitting a deployed backend 
 python scripts/simulate_sensors.py --scenario normal
 python scripts/simulate_sensors.py --scenario heavy_rain
 python scripts/simulate_sensors.py --scenario rapid_escalation --zone dharali
-python scripts/simulate_sensors.py --scenario sensor_failure --zone kedarnath_valley
+python scripts/simulate_sensors.py --scenario sensor_failure --zone joshimath
 python scripts/simulate_sensors.py --api-url http://localhost:8000 --interval 2
 ```
 
@@ -322,7 +322,7 @@ trishul/
 │   │   ├── alert_engine.py       # escalation-only alerts + cooldown
 │   │   ├── simulation_engine.py  # in-process asyncio sensor simulation
 │   │   ├── ws_manager.py         # WebSocket broadcast manager
-│   │   ├── seed_data.py          # 8 fictional zones, shelters, history, demo users
+│   │   ├── seed_data.py          # 8 real Uttarakhand zones, historical events, demo users
 │   │   ├── auth_service.py       # JWT issue/verify, OAuth user resolution
 │   │   ├── oauth.py              # Google/Facebook OAuth client registration
 │   │   └── routers/              # zones, sensors, risk, alerts, simulation, auth, auth_oauth
@@ -352,7 +352,6 @@ trishul/
 │   ├── tailwind.config.js        # Trishul design tokens (wet forest / signal amber)
 │   ├── postcss.config.js
 │   └── Dockerfile                # multi-stage: Vite build → Nginx
-└── images/                       # project screenshots and diagrams
 ```
 
 ---
