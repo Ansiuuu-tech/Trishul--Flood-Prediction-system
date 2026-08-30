@@ -103,7 +103,7 @@ async def maybe_create_alert(
     else:
         channels.append("telegram_demo_mode")
 
-    email_ok = await _deliver_email(f"HimalayaShield ALERT: {zone.name} - {risk.level}", message)
+    email_ok = await _deliver_email(f"Trishul ALERT: {zone.name} - {risk.level}", message)
     if settings.email_configured:
         channels.append("email" if email_ok else "email_failed")
     else:

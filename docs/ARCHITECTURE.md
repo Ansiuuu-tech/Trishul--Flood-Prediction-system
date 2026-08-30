@@ -1,4 +1,4 @@
-# HimalayaShield — Architecture
+# Trishul — Architecture
 
 > Hackathon decision-support prototype. **Demo Mode — not for operational emergency decisions.**
 

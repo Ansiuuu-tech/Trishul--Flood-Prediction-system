@@ -7,7 +7,7 @@ from __future__ import annotations
 import datetime as dt
 import uuid
 
-from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text
+from sqlalchemy import Boolean, DateTime, Float, ForeignKey, Integer, JSON, String, Text, UniqueConstraint
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from app.database import Base
@@ -122,12 +122,37 @@ class Alert(Base):
     zone: Mapped["Zone"] = relationship(back_populates="alerts")
 
 
+class EvacuationShelter(Base):
+    __tablename__ = "evacuation_shelters"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    zone_id: Mapped[str] = mapped_column(ForeignKey("zones.id"), nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    lat: Mapped[float] = mapped_column(Float, nullable=False)
+    lng: Mapped[float] = mapped_column(Float, nullable=False)
+    capacity: Mapped[int] = mapped_column(Integer, default=0)
+    shelter_type: Mapped[str] = mapped_column(String, default="community_center")
+    is_primary: Mapped[bool] = mapped_column(Boolean, default=False, index=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    zone: Mapped["Zone"] = relationship()
+
+
 class User(Base):
     __tablename__ = "users"
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
     username: Mapped[str] = mapped_column(String, unique=True, nullable=False)
+    email: Mapped[str | None] = mapped_column(String, unique=True, nullable=True)
+    full_name: Mapped[str] = mapped_column(String, default="")
     display_name: Mapped[str] = mapped_column(String, default="")
+    hashed_password: Mapped[str | None] = mapped_column(Text, nullable=True)
     role: Mapped[str] = mapped_column(String, default="viewer")  # viewer|operator|administrator
     is_demo_account: Mapped[bool] = mapped_column(Boolean, default=True)
+    oauth_provider: Mapped[str | None] = mapped_column(String, nullable=True)  # google|facebook
+    oauth_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    home_zone_id: Mapped[str | None] = mapped_column(ForeignKey("zones.id"), nullable=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
+
+    __table_args__ = (UniqueConstraint("oauth_provider", "oauth_id", name="uq_oauth_identity"),)

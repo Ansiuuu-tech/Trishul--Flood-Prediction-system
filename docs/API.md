@@ -1,4 +1,4 @@
-# HimalayaShield — API Reference
+# Trishul — API Reference
 
 Base URL (local): `http://localhost:8000`
 Interactive Swagger UI: `http://localhost:8000/docs`

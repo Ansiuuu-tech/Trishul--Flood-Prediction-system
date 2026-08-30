@@ -4,18 +4,20 @@ import datetime as dt
 
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
+from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_settings
 from app.database import get_db, init_db, session_scope
-from app.routers import alerts, auth, risk, sensors, simulation, zones
+from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, zones
 from app.schemas import HealthOut
 from app.seed_data import seed_database
+from app.simulation_engine import start_simulation
 from app.ws_manager import manager
 
 settings = get_settings()
 
 app = FastAPI(
-    title="HimalayaShield API",
+    title="Trishul API",
     description=(
         "Hyper-local flash-flood and landslide early-warning platform — "
         "HACKATHON DEMO. Not for operational emergency decisions."
@@ -31,19 +33,25 @@ app.add_middleware(
     allow_headers=["*"],
 )
 
+# Required by authlib's OAuth dance (state/pkce stored per-session between the
+# redirect to the provider and the callback).
+app.add_middleware(SessionMiddleware, secret_key=settings.session_secret)
+
 app.include_router(zones.router)
 app.include_router(sensors.router)
 app.include_router(risk.router)
 app.include_router(alerts.router)
 app.include_router(simulation.router)
 app.include_router(auth.router)
+app.include_router(auth_oauth.router)
 
 
 @app.on_event("startup")
-def on_startup() -> None:
+async def on_startup() -> None:
     init_db()
     with session_scope() as db:
         seed_database(db)
+    start_simulation("normal")
 
 
 @app.get("/api/health", response_model=HealthOut)
@@ -63,7 +71,7 @@ def health():
 async def websocket_live(websocket: WebSocket):
     await manager.connect(websocket)
     try:
-        await websocket.send_json({"type": "connected", "data": {"message": "HimalayaShield live feed connected (Demo Mode)."}})
+        await websocket.send_json({"type": "connected", "data": {"message": "Trishul live feed connected (Demo Mode)."}})
         while True:
             # Keep the connection open; the client doesn't need to send anything,
             # but we read to detect disconnects promptly.

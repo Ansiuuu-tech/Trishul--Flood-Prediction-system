@@ -30,6 +30,20 @@ class ZoneOut(BaseModel):
     is_fictional: bool
 
 
+# ---------- Evacuation Shelters ----------
+class EvacuationShelterOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True, protected_namespaces=())
+
+    id: str
+    zone_id: str
+    name: str
+    lat: float
+    lng: float
+    capacity: int
+    shelter_type: str
+    is_primary: bool
+
+
 # ---------- Sensor readings ----------
 class SensorReadingIn(BaseModel):
     zone_id: str
@@ -153,9 +167,21 @@ class UserOut(BaseModel):
 
     id: str
     username: str
+    email: Optional[str] = None
+    full_name: Optional[str] = None
     display_name: str
     role: str
     is_demo_account: bool
+    oauth_provider: Optional[str] = None
+    oauth_id: Optional[str] = None
+    avatar_url: Optional[str] = None
+    home_zone_id: Optional[str] = None
+    created_at: Optional[dt.datetime] = None
+
+
+class LoginResponse(BaseModel):
+    token: str
+    user: UserOut
 
 
 # ---------- Health ----------

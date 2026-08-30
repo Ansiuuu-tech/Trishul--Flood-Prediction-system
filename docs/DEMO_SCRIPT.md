@@ -1,11 +1,11 @@
-# HimalayaShield — 5-Minute Hackathon Demo Script
+# Trishul — 5-Minute Hackathon Demo Script
 
 **Setup (before judges arrive):** run `docker compose up --build` (or the local dev commands in the README) and confirm `http://localhost:5173` loads with all 8 zones showing Safe (green).
 
 ---
 
 ### 0:00 – 0:30 · The problem
-> "Hilly regions get flash floods and landslides with almost no warning. Existing systems rely on a single signal — just rainfall, or just a seismometer. HimalayaShield fuses six signals — rainfall, soil moisture, slope tilt, vibration, terrain, and history — into one explainable risk score per village, so local officials know *why* a zone is at risk and *what to do*, not just a number."
+> "Hilly regions get flash floods and landslides with almost no warning. Existing systems rely on a single signal — just rainfall, or just a seismometer. Trishul fuses six signals — rainfall, soil moisture, slope tilt, vibration, terrain, and history — into one explainable risk score per village, so local officials know *why* a zone is at risk and *what to do*, not just a number."
 
 Point out the **Demo Mode** badge — this is a decision-support prototype, not a certified emergency system.
 

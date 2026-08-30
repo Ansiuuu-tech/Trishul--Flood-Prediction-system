@@ -2,7 +2,7 @@
 """
 scripts/simulate_sensors.py
 
-Standalone sensor simulator for HimalayaShield. Sends realistic rainfall,
+Standalone sensor simulator for Trishul. Sends realistic rainfall,
 soil-moisture, tilt, and vibration readings to the backend's
 POST /api/sensors/bulk endpoint every SIMULATION_INTERVAL_SECONDS (default
 2s), without requiring any physical hardware.
@@ -129,7 +129,7 @@ def build_readings(scenario: str, tick: int, target_zone: Optional[str]) -> list
 
 
 def main() -> None:
-    parser = argparse.ArgumentParser(description="HimalayaShield sensor simulator")
+    parser = argparse.ArgumentParser(description="Trishul sensor simulator")
     parser.add_argument("--api-url", default="http://localhost:8000", help="Backend base URL")
     parser.add_argument(
         "--scenario", default="normal",
@@ -145,7 +145,7 @@ def main() -> None:
         sys.exit(1)
 
     url = f"{args.api_url.rstrip('/')}/api/sensors/bulk"
-    print(f"HimalayaShield simulator (Demo Mode) -> scenario={args.scenario} target={args.zone or ZONE_IDS[0]}")
+    print(f"Trishul simulator (Demo Mode) -> scenario={args.scenario} target={args.zone or ZONE_IDS[0]}")
     print(f"POSTing to {url} every {args.interval}s. Press Ctrl+C to stop.")
 
     tick = 0

@@ -1,54 +1,43 @@
-version: "3.9"
-
 services:
-  postgres:
+  db:
     image: postgres:16-alpine
+    container_name: trishul-db
     environment:
-      POSTGRES_USER: himalaya
-      POSTGRES_PASSWORD: himalaya
-      POSTGRES_DB: himalayashield
+      POSTGRES_USER: trishul
+      POSTGRES_PASSWORD: trishul_dev
+      POSTGRES_DB: trishul
     ports:
       - "5432:5432"
     volumes:
-      - himalaya_pgdata:/var/lib/postgresql/data
-      - ./backend/migrations/001_init.sql:/docker-entrypoint-initdb.d/001_init.sql
+      - pgdata:/var/lib/postgresql/data
     healthcheck:
-      test: ["CMD-SHELL", "pg_isready -U himalaya -d himalayashield"]
+      test: ["CMD-SHELL", "pg_isready -U trishul"]
       interval: 5s
       timeout: 5s
-      retries: 10
+      retries: 5
 
   backend:
     build: ./backend
+    container_name: trishul-backend
+    depends_on:
+      db:
+        condition: service_healthy
+    environment:
+      DATABASE_URL: postgresql+psycopg2://trishul:trishul_dev@db:5432/trishul
+      CORS_ORIGINS: http://localhost:5173,http://127.0.0.1:5173
     ports:
       - "8000:8000"
-    environment:
-      DATABASE_URL: postgresql+psycopg2://himalaya:himalaya@postgres:5432/himalayashield
-      CORS_ORIGINS: http://localhost:5173,http://localhost:80,http://frontend
-      DEMO_MODE: "true"
-      SIMULATION_INTERVAL_SECONDS: "2"
-      ALERT_COOLDOWN_SECONDS: "120"
-      # Optional alerting - leave blank for demo mode:
-      TELEGRAM_BOT_TOKEN: ${TELEGRAM_BOT_TOKEN:-}
-      TELEGRAM_CHAT_ID: ${TELEGRAM_CHAT_ID:-}
-      SMTP_HOST: ${SMTP_HOST:-}
-      SMTP_PORT: ${SMTP_PORT:-587}
-      SMTP_USERNAME: ${SMTP_USERNAME:-}
-      SMTP_PASSWORD: ${SMTP_PASSWORD:-}
-      ALERT_EMAIL: ${ALERT_EMAIL:-}
-    depends_on:
-      postgres:
-        condition: service_healthy
+    command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
-    build:
-      context: ./frontend
-      args:
-        VITE_API_URL: http://localhost:8000
-    ports:
-      - "5173:80"
+    build: ./frontend
+    container_name: trishul-frontend
     depends_on:
       - backend
+    environment:
+      - VITE_API_URL=http://localhost:8000
+    ports:
+      - "5173:80"
 
 volumes:
-  himalaya_pgdata:
+  pgdata:

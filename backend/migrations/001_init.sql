@@ -1,4 +1,4 @@
--- HimalayaShield initial schema (PostgreSQL)
+-- Trishul initial schema (PostgreSQL)
 -- This mirrors the SQLAlchemy models in backend/app/models.py.
 -- For local development, SQLAlchemy's create_all() handles table creation
 -- automatically (see app/database.py). Use this migration when provisioning
@@ -92,8 +92,16 @@ CREATE INDEX IF NOT EXISTS idx_alerts_created_at ON alerts(created_at);
 CREATE TABLE IF NOT EXISTS users (
     id TEXT PRIMARY KEY,
     username TEXT UNIQUE NOT NULL,
+    email TEXT UNIQUE,
+    full_name TEXT DEFAULT '',
     display_name TEXT DEFAULT '',
+    hashed_password TEXT,
     role TEXT DEFAULT 'viewer',
     is_demo_account BOOLEAN DEFAULT TRUE,
-    created_at TIMESTAMPTZ DEFAULT now()
+    oauth_provider TEXT,
+    oauth_id TEXT,
+    avatar_url TEXT,
+    home_zone_id TEXT REFERENCES zones(id),
+    created_at TIMESTAMPTZ DEFAULT now(),
+    CONSTRAINT uq_oauth_identity UNIQUE (oauth_provider, oauth_id)
 );
