@@ -81,6 +81,7 @@ interface OWCurrent {
 
 interface OWForecast {
   list: Array<{
+    dt: number;
     dt_txt: string;
     main: { temp: number };
     pop: number;
@@ -127,6 +128,12 @@ function parseEvacuationRoute(route: string): { distance: number; direction: str
   };
 }
 
+function extractDistrict(description: string, name: string): string {
+  const m = description.match(/([A-Za-z\s]+(?:District|Nepal|India)[A-Za-z\s]*)/i);
+  if (m) return m[1].trim();
+  return description.includes('district') ? description.split('district')[0].trim() + ' District' : name;
+}
+
 function buildZoneFromBackend(
   zone: BackendZone,
   risk: BackendRisk,
@@ -158,7 +165,7 @@ function buildZoneFromBackend(
   return {
     id: zone.id,
     name: zone.name,
-    district: zone.description.includes('village') ? 'Fictional District' : 'Fictional District',
+    district: extractDistrict(zone.description, zone.name),
     coordinates: coords,
     shaktiScore,
     rudraLevel,
@@ -271,14 +278,13 @@ function mapOpenWeather(ow: OWCurrent & { forecast: OWForecast }): {
   condition: string;
   humidity: number;
   windSpeed: number;
-  forecast: Array<{ time: string; temp: number; rainProb: number }>;
+  forecast: Array<{ timestamp: number; time: string; temp: number; rainProb: number }>;
 } {
   const forecast = ow.forecast.list
-    .filter((_, i) => i % 2 === 0)
-    .slice(0, 6)
+    .slice(0, 4)
     .map((item) => ({
-      date: item.dt_txt.split(' ')[0],
-      time: item.dt_txt.split(' ')[1].slice(0, 5),
+      timestamp: item.dt,
+      time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
       temp: Math.round(item.main.temp),
       rainProb: Math.round((item.pop || 0) * 100),
     }));
@@ -293,101 +299,95 @@ function mapOpenWeather(ow: OWCurrent & { forecast: OWForecast }): {
 }
 
 export async function fetchDashboardData(): Promise<DashboardData> {
+  let zonesList: BackendZone[] = [];
   try {
-    const [zones, risks, sensors, health] = await Promise.allSettled([
-      fetchBackendZones(),
-      fetchBackendRisk(),
-      fetchBackendSensors(),
-      fetchBackendHealth(),
-    ]);
-
-    if (zones.status === 'rejected' || risks.status === 'rejected') {
-      throw new Error('Backend unreachable');
-    }
-
-    const zonesList: BackendZone[] = zones.value;
-    const riskList: BackendRisk[] = risks.status === 'fulfilled' ? risks.value : [];
-    const sensorList: BackendSensor[] = sensors.status === 'fulfilled' ? sensors.value : [];
-    const isDemo = health.status === 'fulfilled' && health.value?.demo_mode;
-
-    const riskByZone = new Map(riskList.map((r) => [r.zone_id, r]));
-    const sensorByZone = new Map(sensorList.map((s) => [s.zone_id, s]));
-
-    const apiZones: ZoneData[] = zonesList.map((zone) => {
-      const risk = riskByZone.get(zone.id);
-      const sensor = sensorByZone.get(zone.id);
-
-      if (!risk) {
-        return {
-          id: zone.id,
-          name: zone.name,
-          district: 'Fictional District',
-          coordinates: [zone.latitude, zone.longitude] as [number, number],
-          shaktiScore: 0,
-          rudraLevel: 'safe' as RudraLevel,
-          confidence: 0.9,
-          rainfall: { window: '1h' as const, amount: 0, unit: 'mm' as const, intensity: 'light' as const },
-          ground: { saturation: 30, tilt: 2, pFailure: 0.1, status: 'stable' as const },
-          vibration: { anomalyScore: 0.05, classification: 'Quiet' },
-          lastUpdate: 'No data',
-          attribution: { rain: 0, ground: 0, vibration: 0 },
-          timeToSafety: 'N/A',
-          evacuationPoints: [],
-          nearestEvacuation: {
-            name: zone.safe_location,
-            type: 'community_center' as const,
-            distance: 1.2,
-            direction: 'NE',
-            capacity: zone.population,
-          },
-          drishtiReasoning: 'No sensor data available yet.',
-        };
-      }
-
-      return buildZoneFromBackend(zone, risk, sensor || null);
-    });
-
-    let weather: WeatherData = {
-      location: zonesList[0]?.name || 'Unknown Location',
-      temperature: 14,
-      condition: 'Partly Cloudy',
-      humidity: 78,
-      windSpeed: 12,
-      forecast: [],
-    };
-
-    if (OPENWEATHER_KEY && zonesList.length > 0) {
-      try {
-        const primaryZone = zonesList[0];
-        const ow = await fetchWeather(primaryZone.latitude, primaryZone.longitude);
-        const mapped = mapOpenWeather(ow);
-        weather = {
-          location: `${primaryZone.name} District`,
-          temperature: mapped.temperature,
-          condition: mapped.condition,
-          humidity: mapped.humidity,
-          windSpeed: mapped.windSpeed,
-          forecast: mapped.forecast,
-        };
-      } catch (weatherErr) {
-        console.warn('Weather API fetch failed, falling back:', weatherErr);
-      }
-    }
-
-    const selectedZone = apiZones[0]?.id || '';
-    const hasAlert = apiZones.some((z) => z.rudraLevel === 'evacuate' || z.rudraLevel === 'warn');
-
-    return {
-      weather,
-      zones: apiZones,
-      selectedZone,
-      isAlert: hasAlert,
-      isDemo,
-    };
-  } catch (err) {
-    console.warn('Backend fetch failed, using demo data:', err);
-    throw err;
+    zonesList = await fetchBackendZones();
+  } catch {
+    throw new Error('Backend unreachable');
   }
+
+  const [risksResult, sensorsResult, healthResult, weatherResult] = await Promise.allSettled([
+    fetchBackendRisk(),
+    fetchBackendSensors(),
+    fetchBackendHealth(),
+    OPENWEATHER_KEY && zonesList.length > 0
+      ? fetchWeather(zonesList[0].latitude, zonesList[0].longitude)
+      : Promise.resolve(null),
+  ]);
+
+  const riskList: BackendRisk[] = risksResult.status === 'fulfilled' ? risksResult.value : [];
+  const sensorList: BackendSensor[] = sensorsResult.status === 'fulfilled' ? sensorsResult.value : [];
+  const isDemo = healthResult.status === 'fulfilled' && healthResult.value?.demo_mode;
+
+  const riskByZone = new Map(riskList.map((r) => [r.zone_id, r]));
+  const sensorByZone = new Map(sensorList.map((s) => [s.zone_id, s]));
+
+  const apiZones: ZoneData[] = zonesList.map((zone) => {
+    const risk = riskByZone.get(zone.id);
+    const sensor = sensorByZone.get(zone.id);
+
+    if (!risk) {
+      return {
+        id: zone.id,
+        name: zone.name,
+        district: extractDistrict(zone.description, zone.name),
+        coordinates: [zone.latitude, zone.longitude] as [number, number],
+        shaktiScore: 0,
+        rudraLevel: 'safe' as RudraLevel,
+        confidence: 0.9,
+        rainfall: { window: '1h' as const, amount: 0, unit: 'mm' as const, intensity: 'light' as const },
+        ground: { saturation: 30, tilt: 2, pFailure: 0.1, status: 'stable' as const },
+        vibration: { anomalyScore: 0.05, classification: 'Quiet' },
+        lastUpdate: 'No data',
+        attribution: { rain: 0, ground: 0, vibration: 0 },
+        timeToSafety: 'N/A',
+        evacuationPoints: [],
+        nearestEvacuation: {
+          name: zone.safe_location,
+          type: 'community_center' as const,
+          distance: 1.2,
+          direction: 'NE',
+          capacity: zone.population,
+        },
+        drishtiReasoning: 'No sensor data available yet.',
+      };
+    }
+
+    return buildZoneFromBackend(zone, risk, sensor || null);
+  });
+
+  let weather: WeatherData = {
+    location: zonesList[0]?.name || 'Unknown Location',
+    temperature: 14,
+    condition: 'Partly Cloudy',
+    humidity: 78,
+    windSpeed: 12,
+    forecast: [],
+  };
+
+  if (weatherResult.status === 'fulfilled' && weatherResult.value) {
+    const ow = weatherResult.value;
+    const mapped = mapOpenWeather(ow);
+    weather = {
+      location: `${zonesList[0].name} District`,
+      temperature: mapped.temperature,
+      condition: mapped.condition,
+      humidity: mapped.humidity,
+      windSpeed: mapped.windSpeed,
+      forecast: mapped.forecast,
+    };
+  }
+
+  const selectedZone = apiZones[0]?.id || '';
+  const hasAlert = apiZones.some((z) => z.rudraLevel === 'evacuate' || z.rudraLevel === 'warn');
+
+  return {
+    weather,
+    zones: apiZones,
+    selectedZone,
+    isAlert: hasAlert,
+    isDemo,
+  };
 }
 
 export interface ORSRoute {
@@ -406,35 +406,22 @@ export async function fetchEvacuationRoute(
   }
 
   try {
-    const resp = await fetch(
-      'https://api.openrouteservice.org/v2/directions/foot-hiking/geo_json',
-      {
-        method: 'POST',
-        headers: {
-          'Authorization': ORS_KEY,
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          coordinates: [
-            [from[1], from[0]],
-            [to[1], to[0]],
-          ],
-        }),
-      }
-    );
+    const url = `https://api.openrouteservice.org/v2/directions/foot-hiking?api_key=${ORS_KEY}&start=${from[1]},${from[0]}&end=${to[1]},${to[0]}`;
+
+    const resp = await fetch(url);
 
     if (!resp.ok) {
       throw new Error(`ORS error: ${resp.status}`);
     }
 
     const data = await resp.json();
-    const route = data.features?.[0];
+    const route = data.routes?.[0];
     if (!route) return null;
 
     return {
-      coordinates: route.geometry.coordinates as [number, number][],
-      distance: route.properties.summary?.distance || 0,
-      duration: route.properties.summary?.duration || 0,
+      coordinates: route.geometry?.coordinates as [number, number][] || [],
+      distance: route.summary?.distance || 0,
+      duration: route.summary?.duration || 0,
     };
   } catch (err) {
     console.warn('ORS routing failed:', err);

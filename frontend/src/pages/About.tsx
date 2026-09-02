@@ -307,7 +307,8 @@ export function AboutPage() {
                   <text x="510" y="115" fill="#93c5fd" fontSize="9" fontFamily="General Sans, sans-serif">Theoretical curve</text>
                   <g fill="#4C8B5A">
                     <circle cx="80" cy="230" r="5" />
-                    <text x="88" y="234" fill="#94a3b8" fontSize="9" fontFamily="General Sans, sans-serif">Dharali (1.2 km²)</text>
+                    <text x="88" y="234" fill="#94a3b8" fontSize="9" 
+fontFamily="General Sans, sans-serif">Chamoli (1.2 km²)</text>
                   </g>
                   <g fill="#4C8B5A">
                     <circle cx="110" cy="225" r="5" />

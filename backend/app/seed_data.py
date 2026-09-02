@@ -42,62 +42,128 @@ def _polygon(center_lat: float, center_lon: float, size: float = 0.02) -> dict:
 
 ZONES = [
     dict(
-        id="dharali", name="Dharali", description="Village on the Kheer Ganga river between Harsil and Gangotri, Uttarkashi district; hit by a cloudburst-triggered debris flow in August 2025.",
-        latitude=31.0408, longitude=78.7811, population=505, elevation_m=2621, slope_degrees=32,
-        terrain_risk=82, safe_location="Higher ground east of the village toward Harsil road",
-        evacuation_route="Move uphill away from the Kheer Ganga riverbed toward the Harsil road, avoiding the market area.",
+        id="rasuwa",
+        name="Rasuwa",
+        description="Rasuwa District, Nepal — glacier-fed valley in the Langtang/Trishuli region, high GLOF risk.",
+        latitude=28.1084,
+        longitude=85.3006,
+        population=45000,
+        elevation_m=1800,
+        slope_degrees=28,
+        terrain_risk=78,
+        safe_location="Rasuwa Bazar high ground",
+        evacuation_route="Move uphill away from the Trishuli River corridor toward Rasuwa Bazar high ground.",
     ),
     dict(
-        id="harsil", name="Harsil", description="Army cantonment village and apple-growing settlement on the Bhagirathi river, 7km upstream of Dharali on the Gangotri route.",
-        latitude=31.0330, longitude=78.7330, population=1205, elevation_m=2745, slope_degrees=26,
-        terrain_risk=55, safe_location="Harsil Army Cantonment high ground",
-        evacuation_route="Move away from the Bhagirathi riverbank to the cantonment area on higher ground.",
+        id="sindhupalchok",
+        name="Sindhupalchok",
+        description="Sindhupalchok District, Nepal — steep catchment with historical landslide-dam events.",
+        latitude=27.9509,
+        longitude=85.6836,
+        population=280000,
+        elevation_m=1500,
+        slope_degrees=32,
+        terrain_risk=82,
+        safe_location="Sindhupalchok HQ safe zone",
+        evacuation_route="Move to designated safe zone away from river valleys and landslide-prone slopes.",
     ),
     dict(
-        id="uttarkashi", name="Uttarkashi", description="District headquarters town on the Bhagirathi river; lower-risk monitoring hub for the surrounding valleys.",
-        latitude=30.7300, longitude=78.4500, population=17475, elevation_m=1158, slope_degrees=10,
-        terrain_risk=30, safe_location="District Disaster Management Office grounds",
-        evacuation_route="Follow marked routes away from the riverbank to the district office grounds.",
+        id="chamoli",
+        name="Chamoli",
+        description="Chamoli District, Uttarakhand, India — glacier/rockfall origin flash floods; 2021 Rishiganga event region.",
+        latitude=30.4010,
+        longitude=79.5185,
+        population=390000,
+        elevation_m=1600,
+        slope_degrees=30,
+        terrain_risk=85,
+        safe_location="Chamoli district headquarters high ground",
+        evacuation_route="Move uphill away from the Rishiganga-Dhauliganga river corridors toward district HQ high ground.",
     ),
     dict(
-        id="sonprayag", name="Sonprayag", description="Village at the confluence of the Mandakini and Basuki rivers, Rudraprayag district; the road-transit gateway to the Kedarnath trek.",
-        latitude=30.6325, longitude=78.9600, population=805, elevation_m=1829, slope_degrees=24,
-        terrain_risk=62, safe_location="Sonprayag bus terminus (elevated forecourt)",
-        evacuation_route="Move away from the riverside parking area to the elevated bus terminus.",
+        id="uttarkashi",
+        name="Uttarkashi",
+        description="Uttarkashi District, Uttarakhand, India — monsoon cloudburst, steep gradient valley.",
+        latitude=30.7268,
+        longitude=78.4354,
+        population=330000,
+        elevation_m=1200,
+        slope_degrees=24,
+        terrain_risk=70,
+        safe_location="Uttarkashi town safe zone",
+        evacuation_route="Move to Uttarkashi town safe zone away from Bhagirathi riverbank.",
     ),
     dict(
-        id="gaurikund", name="Gaurikund", description="Trailhead village for the Kedarnath trek, Rudraprayag district; the settlement was almost entirely destroyed in the June 2013 floods.",
-        latitude=30.6330, longitude=79.0170, population=310, elevation_m=1982, slope_degrees=34,
-        terrain_risk=85, safe_location="Gaurikund helipad plateau",
-        evacuation_route="Ascend the pilgrim trail away from the Mandakini riverbank toward the helipad plateau.",
+        id="kullu",
+        name="Kullu",
+        description="Kullu District, Himachal Pradesh, India — cloudburst-prone, narrow river valley.",
+        latitude=31.9576,
+        longitude=77.1095,
+        population=440000,
+        elevation_m=1300,
+        slope_degrees=26,
+        terrain_risk=72,
+        safe_location="Kullu town high ground",
+        evacuation_route="Move to Kullu town high ground away from Beas river narrow valley sections.",
     ),
     dict(
-        id="kedarnath", name="Kedarnath", description="Himalayan pilgrimage town below Kedarnath peak, Rudraprayag district; site of the catastrophic 16-17 June 2013 flash flood and debris flow.",
-        latitude=30.7346, longitude=79.0669, population=612, elevation_m=3583, slope_degrees=40,
-        terrain_risk=90, safe_location="Ridge above the temple complex, away from the Chorabari moraine",
-        evacuation_route="Move to high ground on the ridge above the temple, away from the Mandakini floodplain.",
+        id="mandi",
+        name="Mandi",
+        description="Mandi District, Himachal Pradesh, India — cloudburst-prone, 2024 event region.",
+        latitude=31.7084,
+        longitude=76.9319,
+        population=1000000,
+        elevation_m=900,
+        slope_degrees=20,
+        terrain_risk=65,
+        safe_location="Mandi district safe zone",
+        evacuation_route="Move to Mandi district safe zone away from river corridors.",
     ),
     dict(
-        id="raini", name="Raini", description="Village at the Rishiganga-Dhauliganga confluence near Tapovan, Chamoli district; site of the 7 February 2021 glacier/rock-avalanche flash flood. Coordinates are an approximate confluence location. Slopes above the village have since been assessed as unstable.",
-        latitude=30.6170, longitude=79.7180, population=487, elevation_m=1850, slope_degrees=38,
-        terrain_risk=88, safe_location="Raini Panchayat Bhawan on the upper slope",
-        evacuation_route="Move upslope away from the Rishiganga-Dhauliganga confluence toward the Panchayat Bhawan.",
+        id="dhading",
+        name="Dhading",
+        description="Dhading District, Nepal — steep terrain, Trishuli River corridor.",
+        latitude=27.8600,
+        longitude=84.9077,
+        population=320000,
+        elevation_m=1400,
+        slope_degrees=27,
+        terrain_risk=74,
+        safe_location="Dhading Besi safe zone",
+        evacuation_route="Move uphill away from Trishuli River corridor toward Dhading Besi safe zone.",
     ),
     dict(
-        id="joshimath", name="Joshimath", description="Gateway town to Badrinath and the high Himalaya, Chamoli district, at the Alaknanda-Dhauliganga confluence area; a January 2023 land-subsidence crisis cracked hundreds of buildings due to unstable slope ground.",
-        latitude=30.5550, longitude=79.5650, population=48202, elevation_m=1875, slope_degrees=20,
-        terrain_risk=78, safe_location="Joshimath Auli Ropeway upper station area",
-        evacuation_route="Move away from subsidence-affected wards toward the upper Auli road, following local administration guidance.",
+        id="mangan",
+        name="Mangan",
+        description="Mangan District, North Sikkim, India — GLOF risk; 2023 South Lhonak Lake event region.",
+        latitude=27.5155,
+        longitude=88.5324,
+        population=44000,
+        elevation_m=1000,
+        slope_degrees=22,
+        terrain_risk=68,
+        safe_location="Mangan town safe zone",
+        evacuation_route="Move to Mangan town safe zone away from Teesta River valley.",
     ),
 ]
 
 HISTORICAL_EVENTS = {
-    "dharali": [("flash_flood", "severe", 5, dt.date(2025, 8, 5), "A cloudburst over the Kheer Ganga catchment triggered a debris flow that destroyed homes, hotels, and the village market; dozens were reported missing in the days after.")],
-    "kedarnath": [("flash_flood", "severe", 0, dt.date(2013, 6, 17), "A moraine-dammed lake above Kedarnath breached after a cloudburst, sending floodwater and debris through the town; the wider Uttarakhand disaster killed an estimated 4,000+ people, one of India's deadliest flood events.")],
-    "gaurikund": [("flash_flood", "severe", 0, dt.date(2013, 6, 17), "Floodwaters from the Kedarnath disaster nearly destroyed Gaurikund entirely, along with the trek route toward Rambara.")],
-    "sonprayag": [("flash_flood", "moderate", 0, dt.date(2013, 6, 17), "Sonprayag and neighbouring Sitapur suffered severe flood damage during the Kedarnath disaster.")],
-    "raini": [("flash_flood", "severe", 2, dt.date(2021, 2, 7), "A rock-ice avalanche near Nanda Devi triggered a flash flood down the Rishiganga valley, destroying the Rishiganga hydel project and damaging the Tapovan dam; the broader Chamoli disaster killed 200+ people.")],
-    "joshimath": [("landslide", "moderate", 0, dt.date(2023, 1, 2), "Long-suspected slope instability beneath the town surfaced as widespread ground subsidence, cracking over 800 buildings and forcing evacuations.")],
+    "chamoli": [
+        ("flash_flood", "severe", 0, dt.date(2021, 2, 7), "A rock-ice avalanche near Nanda Devi triggered a flash flood down the Rishiganga valley, destroying the Rishiganga hydel project and damaging the Tapovan dam; the broader Chamoli disaster killed 200+ people."),
+    ],
+    "uttarkashi": [],
+    "kullu": [],
+    "mandi": [
+        ("flash_flood", "moderate", 0, dt.date(2024, 8, 1), "A cloudburst over the Mandi catchment triggered flash floods and landslides in the region."),
+    ],
+    "sindhupalchok": [
+        ("landslide", "severe", 0, dt.date(2015, 4, 25), "A major landslide dammed the Bhotekoshi River, causing downstream flood risk."),
+    ],
+    "rasuwa": [],
+    "dhading": [],
+    "mangan": [
+        ("glof", "severe", 0, dt.date(2023, 10, 4), "A GLOF from South Lhonak Lake in Sikkim caused downstream flooding; Mangan district is within the at-risk corridor."),
+    ],
 }
 
 
@@ -199,10 +265,61 @@ def _ensure_demo_users(db: Session) -> None:
     db.commit()
 
 
+_SHELTERS = {
+    "rasuwa": [
+        ("Rasuwa Community Hall", 28.1090, 85.3010, 300, "community_center"),
+        ("Langtang Gompa Shelter", 28.1070, 85.2990, 150, "temple"),
+    ],
+    "sindhupalchok": [
+        ("Sindhupalchok District School", 27.9515, 85.6840, 400, "school"),
+        ("Bhotekoshi Community Hall", 27.9500, 85.6820, 200, "community_center"),
+    ],
+    "chamoli": [
+        ("Chamoli District School", 30.4020, 79.5190, 500, "school"),
+        ("Rishiganga Temple Shelter", 30.4000, 79.5170, 200, "temple"),
+    ],
+    "uttarkashi": [
+        ("Uttarkashi District School", 30.7275, 78.4360, 600, "school"),
+        ("Bhagirathi Community Hall", 30.7260, 78.4340, 300, "community_center"),
+    ],
+    "kullu": [
+        ("Kullu District School", 31.9580, 77.1100, 500, "school"),
+        ("Beas Valley Community Hall", 31.9570, 77.1080, 250, "community_center"),
+    ],
+    "mandi": [
+        ("Mandi District School", 31.7090, 76.9320, 600, "school"),
+        ("Mandi Gompa Shelter", 31.7080, 76.9300, 200, "temple"),
+    ],
+    "dhading": [
+        ("Dhading Besi School", 27.8605, 84.9080, 400, "school"),
+        ("Trishuli Community Hall", 27.8595, 84.9060, 200, "community_center"),
+    ],
+    "mangan": [
+        ("Mangan District School", 27.5160, 88.5330, 300, "school"),
+        ("Mangan Gompa Shelter", 27.5150, 88.5310, 150, "temple"),
+    ],
+}
+
+
+def seed_shelters(db: Session) -> None:
+    if db.query(EvacuationShelter).count() > 0:
+        return
+    for zone_id, shelters in _SHELTERS.items():
+        for name, lat, lng, capacity, shelter_type in shelters:
+            db.add(EvacuationShelter(
+                zone_id=zone_id,
+                name=name,
+                lat=lat,
+                lng=lng,
+                capacity=capacity,
+                shelter_type=shelter_type,
+                is_primary=True,
+            ))
+    db.commit()
+
+
 def seed_database(db: Session) -> None:
     if db.query(Zone).count() > 0:
-        # Zones already exist; just make sure baseline readings/assessments
-        # are present (used after a simulation reset).
         seed_baseline_readings_and_risk(db)
         return
 
@@ -236,10 +353,9 @@ def seed_database(db: Session) -> None:
 
     db.commit()
 
-    # Demo users for the three roles with Trishul demo emails.
+    seed_shelters(db)
+
     _ensure_demo_users(db)
 
-    # Initial baseline readings + risk assessments (all Safe) so the
-    # dashboard has data immediately on first load.
     seed_baseline_readings_and_risk(db)
     

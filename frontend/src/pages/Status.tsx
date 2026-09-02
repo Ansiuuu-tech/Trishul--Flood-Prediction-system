@@ -4,12 +4,12 @@ import { ContourField } from '@/components/core';
 import { RudraBadge } from '@/components/ui';
 
 const zoneStatus = [
-  { id: 'zone-1', name: 'Zone 1 — Dharali', level: 'safe' as const, lastUpdate: '2 min ago' },
-  { id: 'zone-2', name: 'Zone 2 — Manikaran', level: 'safe' as const, lastUpdate: '2 min ago' },
-  { id: 'zone-3', name: 'Zone 3 — Dhading', level: 'evacuate' as const, lastUpdate: 'Just now' },
-  { id: 'zone-4', name: 'Zone 4 — Pokhara Basin', level: 'watch' as const, lastUpdate: '5 min ago' },
-  { id: 'zone-5', name: 'Zone 5 — Tansen', level: 'warn' as const, lastUpdate: '1 min ago' },
-  { id: 'zone-6', name: 'Zone 6 — Butwal', level: 'safe' as const, lastUpdate: '3 min ago' },
+  { id: 'rasuwa', name: 'Rasuwa', level: 'safe' as const, lastUpdate: '2 min ago' },
+  { id: 'sindhupalchok', name: 'Sindhupalchok', level: 'safe' as const, lastUpdate: '2 min ago' },
+  { id: 'chamoli', name: 'Chamoli', level: 'evacuate' as const, lastUpdate: 'Just now' },
+  { id: 'uttarkashi', name: 'Uttarkashi', level: 'watch' as const, lastUpdate: '5 min ago' },
+  { id: 'kullu', name: 'Kullu', level: 'warn' as const, lastUpdate: '1 min ago' },
+  { id: 'mandi', name: 'Mandi', level: 'safe' as const, lastUpdate: '3 min ago' },
 ];
 
 export function StatusPage() {

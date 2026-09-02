@@ -89,8 +89,8 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                 12-Hour Forecast
               </h3>
               <div className="flex items-end justify-between gap-2">
-                {weather.forecast.map((f, index) => (
-                  <div key={`${f.date ?? ''}-${f.time}-${index}`} className="flex flex-col items-center gap-2">
+                {weather.forecast.map((f) => (
+                  <div key={f.timestamp ?? `${f.date ?? ''}-${f.time}`} className="flex flex-col items-center gap-2">
                     <div className="font-mono text-sm text-ink-900 dark:text-mist-50/70">{f.rainProb}%</div>
                     <div
                       className={`w-8 rounded-t-sm transition-all duration-200 ease-out ${

@@ -1,6 +1,7 @@
 export type RudraLevel = 'safe' | 'watch' | 'warn' | 'evacuate';
 
 export interface WeatherReading {
+  timestamp?: number;
   time: string;
   date?: string;
   temp: number;
