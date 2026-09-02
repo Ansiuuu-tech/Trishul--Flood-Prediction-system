@@ -1,7 +1,7 @@
 import { Card } from '@/components/ui';
 import { RudraRing, ContourField, LiveMap, zonesFromData } from '@/components/core';
 import { DashboardData, mockDashboardData } from '@/lib/mockData';
-import dashboardCalmBg from '@/assets/images/dashboard-calm-bg.jpg?url';
+import dashboardCalmBg from '@/assets/images/dashboard-bg.jpeg?url';
 
 export function NormalStateView({ data = mockDashboardData }: { data: DashboardData }) {
   const zone = data.zones[0];
@@ -93,7 +93,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                   <div key={`${f.date ?? ''}-${f.time}-${index}`} className="flex flex-col items-center gap-2">
                     <div className="font-mono text-sm text-ink-900 dark:text-mist-50/70">{f.rainProb}%</div>
                     <div
-                      className={`w-8 rounded-t-sm transition-all duration-300 ${
+                      className={`w-8 rounded-t-sm transition-all duration-200 ease-out ${
                         f.rainProb > 70 ? 'h-20 bg-rudra-evacuate/30' :
                         f.rainProb > 50 ? 'h-16 bg-rudra-warn/30' :
                         f.rainProb > 30 ? 'h-12 bg-rudra-watch/30' :

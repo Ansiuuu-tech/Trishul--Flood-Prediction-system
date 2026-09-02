@@ -4,6 +4,7 @@ import { ContourField } from '@/components/core';
 import { FeatureIcon } from '@/components/core/FeaturePage';
 import { features } from '@/lib/features';
 import { Navigation, Footer } from '@/components/layout';
+import featuresBg from '@/assets/images/features-bg.jpeg?url';
 
 const featureAccents: Record<string, string> = {
   'varuna-watch': 'bg-gradient-to-r from-rudra-watch via-rudra-warn to-rudra-evacuate',
@@ -23,8 +24,8 @@ export function FeaturesPage() {
 
       <main id="main-content" className="pt-16">
         {/* Hero */}
-        <section className="section-py bg-forest-950 relative" aria-labelledby="features-hero-heading">
-          <ContourField className="absolute inset-0" opacity={0.08} />
+        <section className="section-py bg-forest-950 relative" style={{ backgroundImage: `url(${featuresBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="features-hero-heading">
+          <div className="absolute inset-0 bg-forest-950/70" aria-hidden="true" />
           <div className="relative container-main text-center">
             <p className="font-mono text-caption text-fern-400 tracking-widest uppercase mb-4 animate-fade-in">
               Product Capabilities
@@ -52,7 +53,7 @@ export function FeaturesPage() {
                   <div className="flex items-start justify-between mb-4">
                     <FeatureIcon type={feature.icon.type} />
                     <div
-                      className={`h-1 w-12 rounded-full ${featureAccents[feature.id]} opacity-0 group-hover:opacity-100 transition-opacity duration-300`}
+                      className={`h-1 w-12 rounded-full ${featureAccents[feature.id]} opacity-0 group-hover:opacity-100 transition-opacity duration-200 ease-out`}
                       aria-hidden="true"
                     />
                   </div>

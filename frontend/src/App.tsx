@@ -19,6 +19,8 @@ import { TeamPage } from '@/pages/Team';
 import { ContactPage } from '@/pages/Contact';
 import { LoginPage } from '@/pages/Login';
 import { SignupPage } from '@/pages/Signup';
+import { NotFoundPage } from '@/pages/NotFound';
+import { StatusPage } from '@/pages/Status';
 
 // Layout for marketing pages (with Navigation + Footer)
 function MarketingLayout() {
@@ -68,10 +70,11 @@ function AppRoutes() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/team" element={<TeamPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/status" element={<StatusPage />} />
       </Route>
 
-      {/* Redirect root to splash */}
-      <Route path="*" element={<Navigate to="/" replace />} />
+      {/* 404 fallback */}
+      <Route path="*" element={<NotFoundPage />} />
     </Routes>
   );
 }

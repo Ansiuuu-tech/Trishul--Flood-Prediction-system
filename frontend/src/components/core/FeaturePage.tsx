@@ -6,6 +6,8 @@ import { Navigation, Footer } from '@/components/layout';
 import { features } from '@/lib/features';
 import kailashBg from '@/assets/images/kailash-bg.jpg?url';
 
+export const KAILASH_BG = `${kailashBg}?v=2`;
+
 export function FeatureIcon({ type }: { type: string }) {
   const icons: Record<string, JSX.Element> = {
     rainfall: (
@@ -441,7 +443,7 @@ export function FeaturePage({ featureId }: FeaturePageProps) {
   const mockupElement = renderMockup(feature.mockup);
 
   const backgroundStyle = feature.backgroundImage === 'kailash' ? {
-    backgroundImage: `url(${kailashBg})`,
+    backgroundImage: `url(${KAILASH_BG})`,
     backgroundSize: 'cover',
     backgroundPosition: 'center',
   } : undefined;

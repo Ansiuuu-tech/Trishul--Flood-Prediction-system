@@ -3,10 +3,11 @@ import { Navigation, Footer } from '@/components/layout';
 import { NormalStateView, AlertStateView } from '@/components/dashboard';
 import { RudraRing, ContourField } from '@/components/core';
 import { Button } from '@/components/ui';
-import { DashboardData } from '@/lib/mockData';
-import { mockDashboardData, mockAlertData } from '@/lib/mockData';
+import { DashboardData, mockDashboardData, mockAlertData } from '@/lib/mockData';
 import { fetchDashboardData } from '@/lib/api';
 import { useAuth } from '@/context/AuthContext';
+import { CardSkeleton } from '@/components/ui/Skeleton';
+import dashboardBg from '@/assets/images/dashboard-bg.jpeg?url';
 
 export function DashboardPage() {
   const [data, setData] = useState<DashboardData | null>(null);
@@ -50,13 +51,29 @@ export function DashboardPage() {
           <section className="section-py bg-forest-950 relative overflow-hidden" aria-labelledby="dashboard-heading">
             <ContourField className="absolute inset-0" opacity={0.08} />
             <div className="absolute inset-0 bg-forest-950/60" aria-hidden="true" />
-            <div className="relative container-main text-center py-20">
-              <p className="font-mono text-caption text-fern-400 tracking-widest uppercase mb-4">
-                Loading Dashboard...
-              </p>
-              <p className="text-body text-mist-50/60">
-                Connecting to Trishul Core and weather services.
-              </p>
+            <div className="relative container-main">
+              <div className="flex items-center justify-between mb-6">
+                <div>
+                  <div className="skeleton h-4 w-48 mb-4" />
+                  <div className="skeleton h-10 w-64" />
+                </div>
+                <div className="skeleton h-12 w-12 rounded-full" />
+              </div>
+              <div className="skeleton h-5 w-96" />
+            </div>
+          </section>
+          <section className="section-py bg-mist-50 dark:bg-forest-950">
+            <div className="container-main">
+              <div className="grid lg:grid-cols-3 gap-8">
+                <div className="lg:col-span-2 space-y-6">
+                  <CardSkeleton />
+                  <CardSkeleton />
+                </div>
+                <div className="space-y-6">
+                  <CardSkeleton />
+                  <CardSkeleton />
+                </div>
+              </div>
             </div>
           </section>
         </main>
@@ -69,8 +86,7 @@ export function DashboardPage() {
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
       <Navigation />
       <main id="main-content" className="pt-16">
-        <section className="section-py bg-forest-950 relative overflow-hidden" aria-labelledby="dashboard-heading">
-          <ContourField className="absolute inset-0" opacity={0.08} />
+        <section className="section-py bg-forest-950 relative overflow-hidden" style={{ backgroundImage: `url(${dashboardBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="dashboard-heading">
           <div className="absolute inset-0 bg-forest-950/60" aria-hidden="true" />
           <div className="relative container-main">
             <div className="flex items-center justify-between mb-6">
@@ -86,13 +102,13 @@ export function DashboardPage() {
                 {error && (
                   <div className="flex items-center gap-3">
                     <span className="font-sans text-sm text-rudra-watch">
-                      Demo Mode — backend unavailable
+                      Working from limited data
                     </span>
                     <div className="flex gap-2">
                       <button
                         type="button"
                         onClick={() => setManualMode('normal')}
-                        className={`px-3 py-1 rounded-btn text-xs font-medium transition-colors ${
+                        className={`px-3 py-1 rounded-btn text-xs font-medium transition-colors duration-200 ease-out ${
                           manualMode === 'normal' ? 'bg-rudra-safe text-white' : 'bg-stone-200 dark:bg-forest-800 text-ink-900 dark:text-mist-50'
                         }`}
                       >
@@ -101,7 +117,7 @@ export function DashboardPage() {
                       <button
                         type="button"
                         onClick={() => setManualMode('alert')}
-                        className={`px-3 py-1 rounded-btn text-xs font-medium transition-colors ${
+                        className={`px-3 py-1 rounded-btn text-xs font-medium transition-colors duration-200 ease-out ${
                           manualMode === 'alert' ? 'bg-rudra-evacuate text-white' : 'bg-stone-200 dark:bg-forest-800 text-ink-900 dark:text-mist-50'
                         }`}
                       >

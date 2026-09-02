@@ -62,18 +62,22 @@ export default {
         // Mobile hero
         'mobile-hero-h1': ['clamp(2.5rem, 10vw, 3.25rem)', { lineHeight: '1.05', letterSpacing: '-0.02em' }],
       },
+      maxWidth: {
+        prose: '65ch',
+      },
       spacing: {
-        'container': 'clamp(24px, 6vw, 96px)',
+        container: 'clamp(24px, 6vw, 96px)',
       },
       borderRadius: {
-        'btn': '6px',
-        'card': '14px',
-        'pill': '9999px',
+        btn: '6px',
+        card: '14px',
+        pill: '9999px',
       },
       transitionDuration: {
-        'reveal': '400ms',
+        reveal: '400ms',
       },
       transitionTimingFunction: {
+        'ease-out': 'cubic-bezier(0.25, 1, 0.5, 1)',
         'ease-out-quart': 'cubic-bezier(0.25, 1, 0.5, 1)',
       },
       animation: {

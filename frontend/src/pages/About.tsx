@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button, Card } from '@/components/ui';
 import { TrishulMark, ContourField, DamageScene } from '@/components/core';
 import { Navigation, Footer } from '@/components/layout';
-import aboutBg from '@/assets/images/about-bg.jpg?url';
+import aboutBg from '@/assets/images/about-bg.jpeg?url';
 
 const incidents = [
   {
@@ -151,7 +151,7 @@ export function AboutPage() {
             <div className="grid md:grid-cols-3 gap-8 mb-16">
               {geoConcepts.map((concept) => (
                 <Card key={concept.title} variant="dark" className="text-center">
-                  <div className="text-fern-400 mb-4 flex justify-center" aria-hidden="true">{concept.icon}</div>
+                   <div className="text-mist-50/60 mb-4 flex justify-center" aria-hidden="true">{concept.icon}</div>
                   <h3 className="font-display text-h3 text-mist-50 mb-3">{concept.title}</h3>
                   <p className="text-body text-mist-50/70">{concept.desc}</p>
                 </Card>
@@ -174,12 +174,12 @@ export function AboutPage() {
                </div>
             </div>
 
-            <div className="max-w-3xl mx-auto mt-16">
+            <div className="max-w-prose mx-auto mt-16">
               <h3 className="font-display text-h3 text-mist-50 text-center mb-8">Defining Characteristics</h3>
-              <p className="text-body text-mist-50/70 max-w-2xl mx-auto mb-6 text-center">
+              <p className="text-body text-mist-50/70 mb-6 text-center">
                 What distinguishes a flash flood from riverine or coastal flooding is velocity of onset — the entire sequence from trigger to destructive flow can unfold in under six hours. Unlike river floods that build over days as a watershed slowly saturates, a flash flood's destructive potential is driven by three factors: orographic rainfall enhancement (rain falling faster than the land can absorb), limited infiltration capacity on steep or impermeable slopes, and debris-flow bulking, where the water entrains sediment that increases density and destructive force. The result is a moving column of water, rocks, and debris with enough momentum to strip foundations, uproot century-old trees, and scour channels hundreds of meters wide.
               </p>
-              <p className="text-body text-mist-50/70 max-w-2xl mx-auto text-center">
+              <p className="text-body text-mist-50/70 text-center">
                 Lead time is equally compressed. While a river flood gives days of warning as water rises gradually, a flash flood triggered by a landslide-dammed lake breach or intense orographic rainfall reaches communities in minutes to hours. The time between trigger and impact scales with catchment area: small catchments (&lt; 5 km²) can see flows arrive in under an hour, while larger basins (50–100 km²) may take 2–6 hours. Trishul's detection system is built around this constraint — it monitors the precursors (extreme rainfall, saturated soil, ground vibration) rather than waiting for water to arrive.
               </p>
             </div>
@@ -284,9 +284,9 @@ export function AboutPage() {
               </div>
             </div>
 
-            <div className="mt-20 max-w-3xl mx-auto">
+            <div className="mt-20 max-w-prose mx-auto">
               <h3 className="font-display text-h3 text-mist-50 text-center mb-8">Response Time vs Catchment</h3>
-              <p className="text-body text-mist-50/70 text-center max-w-2xl mx-auto mb-8">
+              <p className="text-body text-mist-50/70 text-center mb-8">
                 Trishul's Rudra Level thresholds are calibrated against the empirical relationship between catchment area and time-to-peak — the window between a triggering rainfall event and when peak flood discharge arrives at the catchment mouth. Smaller catchments (&lt; 5 km²) give almost no warning window; larger basins allow hours. The system weights each zone's terrain_risk against this curve so that thresholds tighten for small, fast-responding catchments.
               </p>
               <div className="bg-forest-950 rounded-lg border border-moss-600 p-6">
@@ -453,7 +453,7 @@ export function AboutPage() {
             <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto">
               <Card variant="dark">
                 <div className="space-y-4">
-                  <h3 className="font-display text-h3 text-fern-400">Flash Floods & Debris Flows</h3>
+                   <h3 className="font-display text-h3 text-mist-50">Flash Floods & Debris Flows</h3>
                   <ul className="space-y-3 text-sm">
                     <li>
                       <a

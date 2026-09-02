@@ -5,6 +5,7 @@ import { RudraRing, RudraBanner, DamageScene, ContourField, LiveMap } from '@/co
 import { DashboardData, mockAlertData } from '@/lib/mockData';
 import { fetchEvacuationRoute } from '@/lib/api';
 import { Polyline } from 'react-leaflet';
+import { EvacuationCard } from './EvacuationCard';
 
 export function AlertStateView({ data = mockAlertData }: { data: DashboardData }) {
   const zone = data.zones[0];
@@ -12,6 +13,7 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
   const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
   const [routeDistance, setRouteDistance] = useState<number | null>(null);
   const [routeDuration, setRouteDuration] = useState<number | null>(null);
+  const [showEvacuationCard, setShowEvacuationCard] = useState(false);
 
   useEffect(() => {
     const nearest = zone.nearestEvacuation;
@@ -164,6 +166,13 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                       Get Directions
                     </button>
                   </Link>
+                  <button
+                    type="button"
+                    onClick={() => setShowEvacuationCard(true)}
+                    className="w-full btn btn-primary text-sm"
+                  >
+                    Print Evacuation Card
+                  </button>
                 </div>
               </Card>
 
@@ -211,6 +220,9 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
             </div>
           </Card>
         </div>
+        {showEvacuationCard && (
+          <EvacuationCard zone={zone} onClose={() => setShowEvacuationCard(false)} />
+        )}
       </div>
     </div>
   );

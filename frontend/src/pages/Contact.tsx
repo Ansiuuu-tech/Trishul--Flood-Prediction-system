@@ -3,6 +3,7 @@ import { Link } from 'react-router-dom';
 import { Button, Input, Card } from '@/components/ui';
 import { TrishulMark, ContourField } from '@/components/core';
 import { Navigation, Footer } from '@/components/layout';
+import contactBg from '@/assets/images/contact-bg.jpeg?url';
 
 export function ContactPage() {
   const [formData, setFormData] = useState({ name: '', email: '', organization: '', message: '' });
@@ -38,8 +39,8 @@ export function ContactPage() {
       <Navigation />
       <main id="main-content" className="pt-16">
         {/* Hero */}
-        <section className="section-py bg-forest-950 relative" aria-labelledby="contact-hero-heading">
-          <ContourField className="absolute inset-0" opacity={0.08} />
+        <section className="section-py bg-forest-950 relative" style={{ backgroundImage: `url(${contactBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="contact-hero-heading">
+          <div className="absolute inset-0 bg-forest-950/70" aria-hidden="true" />
           <div className="relative container-main text-center">
             <p className="font-mono text-caption text-fern-400 tracking-widest uppercase mb-4 animate-fade-in">Get in Touch</p>
             <h1 id="contact-hero-heading" className="font-display text-hero-h1 font-medium text-mist-50 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>

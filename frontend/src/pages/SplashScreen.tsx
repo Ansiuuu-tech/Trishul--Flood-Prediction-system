@@ -80,7 +80,7 @@ export function SplashScreen() {
         <div className="mt-10 w-full max-w-md animate-fade-in" style={{ animationDelay: '1.8s', animationFillMode: 'forwards', opacity: 0 }}>
           <div className="h-1 bg-forest-800 rounded-full overflow-hidden" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label="Loading assets">
             <div
-              className="h-full bg-fern-400 rounded-full transition-all duration-300 ease-out"
+               className="h-full bg-fern-400 rounded-full transition-all duration-200 ease-out"
               style={{ width: `${progress}%` }}
             />
           </div>

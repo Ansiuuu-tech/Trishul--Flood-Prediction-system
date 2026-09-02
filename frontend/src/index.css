@@ -37,6 +37,21 @@ body {
 }
 
 @layer base {
+  :root {
+    --forest-950: #0B1A12;
+    --forest-800: #173626;
+    --moss-600: #3F6B49;
+    --fern-400: #7FA872;
+    --mist-50: #F3F5EE;
+    --stone-200: #E4E7DA;
+    --ink-900: #12180F;
+    --signal-amber: #C2571B;
+    --rudra-safe: #4C8B5A;
+    --rudra-watch: #C9A227;
+    --rudra-warn: #D67C2B;
+    --rudra-evacuate: #B23A2E;
+  }
+
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Fraunces', 'Source Serif 4', Georgia, serif;
     font-weight: 600;
@@ -73,7 +88,7 @@ body {
 @layer components {
   /* Buttons */
   .btn {
-    @apply inline-flex items-center justify-center font-sans font-medium text-body px-6 py-3 rounded-btn transition-all duration-200;
+    @apply inline-flex items-center justify-center font-sans font-medium text-body px-6 py-3 rounded-btn transition-all duration-200 ease-out;
   }
   .btn-primary {
     @apply btn bg-signal-amber text-white hover:bg-[#a84a18] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-signal-amber/40;
@@ -93,31 +108,31 @@ body {
 
   /* Inputs */
   .input {
-    @apply w-full px-4 py-3 rounded-btn border border-stone-200 bg-white text-ink-900 placeholder-ink-900/30 focus:border-signal-amber focus:ring-2 focus:ring-signal-amber/20 transition-colors duration-200 dark:bg-forest-800 dark:border-moss-600 dark:text-mist-50 dark:placeholder-mist-50/40;
+    @apply w-full px-4 py-3 rounded-btn border border-stone-200 bg-white text-ink-900 placeholder-ink-900/30 focus:border-signal-amber focus:ring-2 focus:ring-signal-amber/20 transition-colors duration-200 ease-out dark:bg-forest-800 dark:border-moss-600 dark:text-mist-50 dark:placeholder-mist-50/40;
   }
   .label {
     @apply block text-caption font-medium text-ink-900/80 mb-1.5 dark:text-mist-50/80;
   }
 
-  /* Cards */
+  /* Cards — unified hover lift */
   .card {
-    @apply rounded-card bg-white border border-stone-200 p-6 transition-shadow duration-200 hover:shadow-lg dark:bg-forest-800 dark:border-moss-600;
+    @apply rounded-card bg-white border border-stone-200 p-6 transition-all duration-200 ease-out hover:shadow-lg hover:-translate-y-1 dark:bg-forest-800 dark:border-moss-600;
   }
   .card-dark {
-    @apply rounded-card bg-forest-800 border border-moss-600 p-6 transition-shadow duration-200 hover:shadow-[0_0_40px_-10px_rgba(63,107,73,0.3)];
+    @apply rounded-card bg-forest-800 border border-moss-600 p-6 transition-all duration-200 ease-out hover:shadow-[0_0_40px_-10px_rgba(63,107,73,0.3)] hover:-translate-y-1;
   }
 
   /* Links */
   .link {
-    @apply relative font-sans text-fern-400 hover:text-signal-amber transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-all after:duration-200 hover:after:w-full;
+    @apply relative font-sans text-fern-400 hover:text-signal-amber transition-colors duration-200 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-all after:duration-200 ease-out hover:after:w-full;
   }
   .link-dark {
-    @apply relative font-sans text-mist-50 hover:text-signal-amber transition-colors duration-200 after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-all after:duration-200 hover:after:w-full;
+    @apply relative font-sans text-mist-50 hover:text-signal-amber transition-colors duration-200 ease-out after:absolute after:bottom-0 after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-all after:duration-200 ease-out hover:after:w-full;
   }
 
   /* Nav link */
   .nav-link {
-    @apply font-sans text-caption font-medium text-ink-900/70 hover:text-ink-900 transition-colors duration-200 relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-all after:duration-200 hover:after:w-full dark:text-mist-50/70 dark:hover:text-mist-50;
+    @apply font-sans text-caption font-medium text-ink-900/70 hover:text-ink-900 transition-colors duration-200 ease-out relative after:absolute after:bottom-[-4px] after:left-0 after:h-[1px] after:w-0 after:bg-signal-amber after:transition-width after:duration-200 ease-out hover:after:w-full dark:text-mist-50/70 dark:hover:text-mist-50;
   }
   .nav-link-active {
     @apply text-ink-900 after:w-full dark:text-mist-50;
@@ -207,6 +222,86 @@ body {
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
+
+  /* Team photo duotone gel-lighting treatment */
+  .team-photo {
+    filter: contrast(1.1) saturate(0.85);
+  }
+  .team-photo::after {
+    content: '';
+    position: absolute;
+    inset: 0;
+    mix-blend-mode: color;
+    background: linear-gradient(135deg, #D67C2B 0%, transparent 45%, #7FA872 100%);
+    opacity: 0.35;
+    pointer-events: none;
+  }
+
+  /* Skeleton shimmer */
+  @keyframes shimmer {
+    0% { background-position: -200% 0; }
+    100% { background-position: 200% 0; }
+  }
+  .skeleton {
+    background: linear-gradient(90deg, #E4E7DA 25%, #F3F5EE 50%, #E4E7DA 75%);
+    background-size: 200% 100%;
+    animation: shimmer 1.5s ease-in-out infinite;
+    border-radius: 6px;
+  }
+  .dark .skeleton {
+    background: linear-gradient(90deg, #173626 25%, #1e2a3a 50%, #173626 75%);
+    background-size: 200% 100%;
+  }
+
+  /* Max-width prose constraint */
+  .max-w-prose {
+    max-width: 65ch;
+  }
+
+  /* Team grid areas */
+  .team-grid {
+    display: grid;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(5, minmax(240px, auto));
+    grid-template-areas:
+      "a"
+      "b"
+      "c"
+      "d"
+      "e";
+    gap: 1rem;
+  }
+  .team-grid-sub {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+  }
+  @media (min-width: 768px) {
+    .team-grid {
+      grid-template-columns: repeat(2, 1fr);
+      grid-template-rows: repeat(3, minmax(280px, auto));
+      grid-template-areas:
+        "a b"
+        "a c"
+        "d e";
+      gap: 1.5rem;
+    }
+    .team-grid-sub {
+      grid-template-columns: repeat(2, 1fr);
+      gap: 1.5rem;
+    }
+  }
+  @media (min-width: 1024px) {
+    .team-grid {
+      grid-template-columns: 2fr 1fr;
+      grid-template-rows: repeat(3, minmax(320px, auto));
+      grid-template-areas:
+        "a b"
+        "a c"
+        "d e";
+      gap: 1.5rem;
+    }
+  }
 }
 
 @layer utilities {
@@ -219,4 +314,11 @@ body {
   .text-balance {
     text-wrap: balance;
   }
+}
+
+/* Print styles for evacuation card */
+@media print {
+  .no-print { display: none !important; }
+  body { background: white; color: black; }
+  .print-break-inside-avoid { break-inside: avoid; }
 }

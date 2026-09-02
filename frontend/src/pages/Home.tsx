@@ -2,7 +2,7 @@ import { Link } from 'react-router-dom';
 import { Button, RudraBadge } from '@/components/ui';
 import { TrishulMark, ContourField, DamageScene } from '@/components/core';
 import { Navigation, Footer } from '@/components/layout';
-import heroBg from '@/assets/images/hero-bg.jpg?url';
+import { KAILASH_BG } from '@/components/core/FeaturePage';
 
 const features = [
   {
@@ -59,7 +59,7 @@ export function HomePage() {
       <main id="main-content">
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center bg-forest-950 overflow-hidden" aria-labelledby="hero-heading">
-          <img src={heroBg} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <img src={KAILASH_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
           <ContourField className="absolute inset-0" opacity={0.08} />
           <div className="relative container-main py-20 lg:py-32">
             <div className="max-w-4xl">
@@ -70,7 +70,7 @@ export function HomePage() {
                 Know the river.<br />
                 <span className="block">Warn the village.</span>
               </h1>
-              <p className="text-body text-mist-50/70 max-w-2xl mb-10 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <p className="text-body text-mist-50/70 max-w-2xl mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
                 Trishul fuses rainfall, ground condition, and vibration into one warning system — so no village learns about a flood from the flood itself.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
@@ -81,7 +81,7 @@ export function HomePage() {
                 </Link>
                 <Link to="/about">
                   <Button variant="secondary" size="lg">
-                    Read the Nepal case study
+                    Read about Flash Floods..
                   </Button>
                 </Link>
               </div>

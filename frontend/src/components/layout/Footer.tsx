@@ -1,6 +1,7 @@
 import { Link } from 'react-router-dom';
 import { NavLink, Button, Input } from '@/components/ui';
 import { TrishulMark } from '@/components/core';
+import { SignalTicker } from '@/components/core/SignalTicker';
 
 const footerLinks = {
   Product: [
@@ -37,6 +38,7 @@ export function Footer() {
 
   return (
     <footer className="bg-forest-950 text-mist-50" role="contentinfo">
+      <SignalTicker />
       <div className="container-main py-16 lg:py-24">
         <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12 mb-16">
           <div className="col-span-2 lg:col-span-1">
