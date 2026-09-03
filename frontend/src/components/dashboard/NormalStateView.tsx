@@ -4,6 +4,8 @@ import { Card } from '@/components/ui';
 import { RudraRing, ContourField, LiveMap, zonesFromData } from '@/components/core';
 import { DashboardData, mockDashboardData } from '@/lib/mockData';
 import dashboardCalmBg from '@/assets/images/dashboard-bg.jpeg?url';
+import { Sparkline } from './Sparkline';
+import { LiveIndicator } from './LiveIndicator';
 
 export function NormalStateView({ data = mockDashboardData }: { data: DashboardData }) {
   const zones = data.zones;
@@ -41,6 +43,40 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
+      {/*
+        Scanline sweep: the one deliberate "live instrument" motif for this view —
+        a slow horizontal read passing across the top card, evoking a seismograph/
+        telemetry trace rather than a static snapshot. Kept subtle (low opacity,
+        8s loop) and confined to a single element per the "spend boldness in one
+        place" principle — nothing else in this view animates on a loop.
+      */}
+      <style>{`
+        @keyframes trishul-scanline {
+          0% { transform: translateX(-10%); opacity: 0; }
+          10% { opacity: 0.5; }
+          90% { opacity: 0.5; }
+          100% { transform: translateX(110%); opacity: 0; }
+        }
+        .trishul-scanline-track {
+          position: absolute;
+          inset: 0;
+          overflow: hidden;
+          pointer-events: none;
+          border-radius: inherit;
+        }
+        .trishul-scanline-line {
+          position: absolute;
+          top: 0;
+          bottom: 0;
+          width: 2px;
+          background: linear-gradient(to bottom, transparent, rgba(127, 168, 114, 0.5), transparent);
+          animation: trishul-scanline 8s linear infinite;
+        }
+        @media (prefers-reduced-motion: reduce) {
+          .trishul-scanline-line { animation: none; opacity: 0; }
+        }
+      `}</style>
+
       <img
         src={dashboardCalmBg}
         alt=""
@@ -68,15 +104,20 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                     data-index={i}
                     className="snap-center shrink-0 w-full"
                   >
-                    <Card>
-                      <div className="flex items-center justify-between mb-6">
+                    <Card className="relative overflow-hidden">
+                      <div className="trishul-scanline-track" aria-hidden="true">
+                        <div className="trishul-scanline-line" />
+                      </div>
+
+                      <div className="relative flex items-center justify-between mb-1">
                         <h2 className="font-display text-h3 text-ink-900 dark:text-mist-50">
                           {z.name} — {z.district}
                         </h2>
                         <RudraRing level={z.rudraLevel} pulse={false} showLabel={true} />
                       </div>
+                      <LiveIndicator resetKey={z.id} className="relative mb-6" />
 
-                      <div className="grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
+                      <div className="relative grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
                           <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{weather.temperature}°C</div>
                           <div className="text-caption text-ink-900/60 dark:text-mist-50/60">{weather.condition}</div>
@@ -95,38 +136,38 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                         </div>
                       </div>
 
-                      <div className="grid md:grid-cols-3 gap-6">
+                      <div className="relative grid md:grid-cols-3 gap-6">
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50 mb-1">
-                            {z.rainfall.amount}mm
+                          <div className="flex items-end justify-between mb-1">
+                            <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50">
+                              {z.rainfall.amount}mm
+                            </div>
+                            <Sparkline value={z.rainfall.amount} color="#4C8B5A" jitter={0.3} width={72} height={24} />
                           </div>
-                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60 mb-2">
+                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60">
                             {z.rainfall.window} Rainfall
                           </div>
-                          <div className="h-2 bg-stone-200 dark:bg-forest-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-rudra-safe rounded-full" style={{ width: '12%' }} />
-                          </div>
                         </div>
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50 mb-1">
-                            {z.ground.saturation}%
+                          <div className="flex items-end justify-between mb-1">
+                            <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50">
+                              {z.ground.saturation}%
+                            </div>
+                            <Sparkline value={z.ground.saturation} color="#4C8B5A" jitter={0.5} width={72} height={24} />
                           </div>
-                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60 mb-2">
+                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60">
                             Soil Saturation
                           </div>
-                          <div className="h-2 bg-stone-200 dark:bg-forest-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-rudra-safe rounded-full" style={{ width: '28%' }} />
-                          </div>
                         </div>
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50 mb-1">
-                            {z.vibration.anomalyScore.toFixed(2)}
+                          <div className="flex items-end justify-between mb-1">
+                            <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50">
+                              {z.vibration.anomalyScore.toFixed(2)}
+                            </div>
+                            <Sparkline value={z.vibration.anomalyScore} color="#4C8B5A" jitter={0.02} width={72} height={24} />
                           </div>
-                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60 mb-2">
+                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60">
                             Vibration Anomaly
-                          </div>
-                          <div className="h-2 bg-stone-200 dark:bg-forest-950 rounded-full overflow-hidden">
-                            <div className="h-full bg-rudra-safe rounded-full" style={{ width: '5%' }} />
                           </div>
                         </div>
                       </div>
@@ -169,8 +210,9 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                       aria-label={`Show ${z.name}`}
                       aria-current={i === activeIndex}
                       onClick={() => scrollToIndex(i)}
-                      className={`h-2 rounded-full transition-all duration-200 ease-out ${i === activeIndex ? 'w-6 bg-rudra-safe' : 'w-2 bg-stone-300 dark:bg-moss-600'
-                        }`}
+                      className={`h-2 rounded-full transition-all duration-200 ease-out ${
+                        i === activeIndex ? 'w-6 bg-rudra-safe' : 'w-2 bg-stone-300 dark:bg-moss-600'
+                      }`}
                     />
                   ))}
                 </div>
@@ -186,11 +228,12 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                   <div key={f.timestamp ?? `${f.date ?? ''}-${f.time}`} className="flex flex-col items-center gap-2">
                     <div className="font-mono text-sm text-ink-900 dark:text-mist-50/70">{f.rainProb}%</div>
                     <div
-                      className={`w-8 rounded-t-sm transition-all duration-200 ease-out ${f.rainProb > 70 ? 'h-20 bg-rudra-evacuate/30' :
+                      className={`w-8 rounded-t-sm transition-all duration-200 ease-out ${
+                        f.rainProb > 70 ? 'h-20 bg-rudra-evacuate/30' :
                         f.rainProb > 50 ? 'h-16 bg-rudra-warn/30' :
-                          f.rainProb > 30 ? 'h-12 bg-rudra-watch/30' :
-                            'h-6 bg-rudra-safe/30'
-                        }`}
+                        f.rainProb > 30 ? 'h-12 bg-rudra-watch/30' :
+                        'h-6 bg-rudra-safe/30'
+                      }`}
                     />
                     <div className="font-sans text-xs text-ink-900/60 dark:text-mist-50/60">{f.time}</div>
                   </div>
@@ -201,9 +244,12 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
 
           <div className="space-y-6">
             <Card>
-              <div className="flex items-center gap-3 mb-4">
-                <div className="w-2 h-2 rounded-full bg-rudra-safe" aria-hidden="true" />
-                <span className="font-mono text-caption text-rudra-safe font-medium">All Systems Normal</span>
+              <div className="flex items-center justify-between mb-4">
+                <div className="flex items-center gap-3">
+                  <div className="w-2 h-2 rounded-full bg-rudra-safe" aria-hidden="true" />
+                  <span className="font-mono text-caption text-rudra-safe font-medium">All Systems Normal</span>
+                </div>
+                <LiveIndicator resetKey={zone.id} label="" />
               </div>
               <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-4">
                 Ground Conditions
@@ -247,7 +293,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
               <h3 className="font-display text-h3 text-mist-50 mb-4">
                 Live Map
               </h3>
-              <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative aspect-[16/9]">
+              <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative h-[420px]">
                 <ContourField className="absolute inset-0" opacity={0.12} />
                 <div className="absolute inset-0">
                   <LiveMap
