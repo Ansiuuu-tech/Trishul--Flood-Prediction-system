@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button, Card } from '@/components/ui';
 import { TrishulMark, ContourField, DamageScene } from '@/components/core';
-import { Navigation, Footer } from '@/components/layout';
 import aboutBg from '@/assets/images/about-bg.jpeg?url';
 
 const incidents = [
@@ -88,8 +87,7 @@ const depthThreats = [
 export function AboutPage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         {/* Hero */}
         <section className="section-py bg-forest-950 relative" aria-labelledby="about-hero-heading">
           <img src={aboutBg} alt="" className="absolute inset-0 w-full h-full object-cover opacity-35" />
@@ -568,8 +566,7 @@ fontFamily="General Sans, sans-serif">Chamoli (1.2 km²)</text>
             </Card>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

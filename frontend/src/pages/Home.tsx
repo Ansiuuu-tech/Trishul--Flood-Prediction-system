@@ -1,7 +1,6 @@
 import { Link } from 'react-router-dom';
 import { Button, RudraBadge } from '@/components/ui';
 import { TrishulMark, ContourField, DamageScene } from '@/components/core';
-import { Navigation, Footer } from '@/components/layout';
 import { KAILASH_BG } from '@/components/core/FeaturePage';
 
 const features = [
@@ -54,9 +53,7 @@ const stats = [
 export function HomePage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-
-      <main id="main-content">
+      <div>
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center bg-forest-950 overflow-hidden" aria-labelledby="hero-heading">
           <img src={KAILASH_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
@@ -293,9 +290,7 @@ export function HomePage() {
             </p>
           </div>
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }

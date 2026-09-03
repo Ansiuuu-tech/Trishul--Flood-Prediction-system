@@ -2,7 +2,6 @@ import { useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button, Input, Card } from '@/components/ui';
 import { TrishulMark, ContourField } from '@/components/core';
-import { Navigation, Footer } from '@/components/layout';
 import contactBg from '@/assets/images/contact-bg.jpeg?url';
 
 export function ContactPage() {
@@ -36,8 +35,7 @@ export function ContactPage() {
 
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         {/* Hero */}
         <section className="section-py bg-forest-950 relative" style={{ backgroundImage: `url(${contactBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="contact-hero-heading">
           <div className="absolute inset-0 bg-forest-950/70" aria-hidden="true" />
@@ -178,8 +176,7 @@ export function ContactPage() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

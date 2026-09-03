@@ -1,5 +1,4 @@
 import { team } from '@/data/team';
-import { Navigation, Footer } from '@/components/layout';
 import { ContourField } from '@/components/core';
 import teamBg from '@/assets/images/team-bg.jpeg?url';
 
@@ -50,8 +49,7 @@ function TeamPhoto({ member, index }: { member: typeof team[0]; index: number })
 export function TeamPage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         {/* Hero */}
         <section className="section-py bg-forest-950 relative" style={{ backgroundImage: `url(${teamBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="team-hero-heading">
           <div className="absolute inset-0 bg-forest-950/70" aria-hidden="true" />
@@ -96,8 +94,7 @@ export function TeamPage() {
             </p>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

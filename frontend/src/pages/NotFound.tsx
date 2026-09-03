@@ -1,12 +1,10 @@
-import { Navigation, Footer } from '@/components/layout';
 import { Link } from 'react-router-dom';
 import { DamageScene, ContourField } from '@/components/core';
 
 export function NotFoundPage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         <section className="section-py bg-forest-950 relative overflow-hidden" aria-labelledby="404-heading">
           <DamageScene shaktiScore={35} className="absolute inset-0 opacity-20" />
           <ContourField className="absolute inset-0" opacity={0.08} />
@@ -26,8 +24,7 @@ export function NotFoundPage() {
             </Link>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

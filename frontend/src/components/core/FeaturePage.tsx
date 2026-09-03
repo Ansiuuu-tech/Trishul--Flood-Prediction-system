@@ -2,7 +2,6 @@ import { useMemo } from 'react';
 import { Link } from 'react-router-dom';
 import { RudraBadge, Button, Card } from '@/components/ui';
 import { RudraRing, ContourField } from '@/components/core';
-import { Navigation, Footer } from '@/components/layout';
 import { features } from '@/lib/features';
 import kailashBg from '@/assets/images/kailash-bg.jpg?url';
 
@@ -450,8 +449,7 @@ export function FeaturePage({ featureId }: FeaturePageProps) {
 
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         {/* Hero */}
         <section
           className="section-py bg-forest-950 relative"
@@ -572,8 +570,7 @@ export function FeaturePage({ featureId }: FeaturePageProps) {
             </Link>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

@@ -1,5 +1,4 @@
 import { Link } from "react-router-dom";
-import { Navigation, Footer } from "@/components/layout";
 import { Button } from "@/components/ui";
 import { RequireAuth } from "@/components/auth/RequireAuth";
 import { useAuth } from "@/context/AuthContext";
@@ -19,8 +18,7 @@ function ProfileContent() {
 
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         <section className="section-py">
           <div className="container-main max-w-2xl">
             <div className="mb-8 flex items-center gap-4">
@@ -76,8 +74,7 @@ function ProfileContent() {
             </div>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

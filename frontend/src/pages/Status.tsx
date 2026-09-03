@@ -1,4 +1,3 @@
-import { Navigation, Footer } from '@/components/layout';
 import { Link } from 'react-router-dom';
 import { ContourField } from '@/components/core';
 import { RudraBadge } from '@/components/ui';
@@ -15,8 +14,7 @@ const zoneStatus = [
 export function StatusPage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-      <main id="main-content" className="pt-16">
+      <div>
         <section className="section-py bg-forest-950 relative" aria-labelledby="status-heading">
           <ContourField className="absolute inset-0" opacity={0.08} />
           <div className="relative container-main text-center">
@@ -49,8 +47,7 @@ export function StatusPage() {
             </p>
           </div>
         </section>
-      </main>
-      <Footer />
+      </div>
     </div>
   );
 }

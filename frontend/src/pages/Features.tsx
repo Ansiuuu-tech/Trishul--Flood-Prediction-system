@@ -3,7 +3,6 @@ import { RudraBadge, Card, Button } from '@/components/ui';
 import { ContourField } from '@/components/core';
 import { FeatureIcon } from '@/components/core/FeaturePage';
 import { features } from '@/lib/features';
-import { Navigation, Footer } from '@/components/layout';
 import featuresBg from '@/assets/images/features-bg.jpeg?url';
 
 const featureAccents: Record<string, string> = {
@@ -20,9 +19,7 @@ const featureAccents: Record<string, string> = {
 export function FeaturesPage() {
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
-      <Navigation />
-
-      <main id="main-content" className="pt-16">
+      <div>
         {/* Hero */}
         <section className="section-py bg-forest-950 relative" style={{ backgroundImage: `url(${featuresBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="features-hero-heading">
           <div className="absolute inset-0 bg-forest-950/70" aria-hidden="true" />
@@ -95,9 +92,7 @@ export function FeaturesPage() {
             </Link>
           </div>
         </section>
-      </main>
-
-      <Footer />
+      </div>
     </div>
   );
 }
