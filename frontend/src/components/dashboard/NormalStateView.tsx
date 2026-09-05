@@ -85,7 +85,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
       />
       <div className="absolute inset-0 bg-forest-950/10" aria-hidden="true" />
 
-      <div className="relative container-main py-8">
+      <div className="relative container-main py-8 space-y-8">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
             {/* Zone carousel — scroll or swipe to move between zones */}
@@ -288,32 +288,47 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                 Route ready if needed. No action required at this time.
               </p>
             </Card>
+          </div>
+        </div>
 
-            <Card variant="dark">
-              <h3 className="font-display text-h3 text-mist-50 mb-4">
-                Live Map
+        {/* Full-width Live Map Section */}
+        <Card variant="dark" className="w-full">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 mb-4">
+            <div>
+              <h3 className="font-display text-h3 text-mist-50">
+                Live Hazard & Terrain Map
               </h3>
-              <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative h-[420px]">
-                <ContourField className="absolute inset-0" opacity={0.12} />
-                <div className="absolute inset-0">
-                  <LiveMap
-                    center={[zone.coordinates[0], zone.coordinates[1]]}
-                    zoom={13}
-                    showWeatherOverlay="clouds_new"
-                    zoneMarkers={zonesFromData({ zones: data.zones })}
-                    showUserLocation={true}
-                  />
-                </div>
-              </div>
-              <p className="text-caption text-mist-50/50 mt-3">
-                {data.zones.length} zones monitored. Green markers indicate Safe/Watch levels. Your location shown as a green dot if geolocation is enabled.
+              <p className="text-caption text-mist-50/70 mt-1">
+                Real-time satellite terrain, glacier outlines, and live rain radar across the Chamoli monitoring grid.
               </p>
-            </Card>
-
-            <div className="text-center text-caption text-ink-900/50 dark:text-mist-50/50">
-              Last updated: {zone.lastUpdate}
+            </div>
+            <div className="flex items-center gap-2 text-caption text-mist-50/60 font-mono">
+              <span className="inline-block w-2 h-2 rounded-full bg-rudra-safe" />
+              {data.zones.length} Zones Monitored
             </div>
           </div>
+          <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative h-[520px] w-full">
+            <ContourField className="absolute inset-0" opacity={0.12} />
+            <div className="absolute inset-0">
+              <LiveMap
+                center={[zone.coordinates[0], zone.coordinates[1]]}
+                zoom={13}
+                showWeatherOverlay="clouds_new"
+                zoneMarkers={zonesFromData({ zones: data.zones })}
+                showUserLocation={true}
+              />
+            </div>
+          </div>
+          <div className="flex flex-wrap items-center justify-between gap-2 text-caption text-mist-50/50 mt-3">
+            <span>
+              Green markers indicate Safe/Watch levels. Your location shown as a green dot if geolocation is enabled.
+            </span>
+            <span>Use the layer controls in the top-right to toggle live precipitation radar and GLIMS glacier data.</span>
+          </div>
+        </Card>
+
+        <div className="text-center text-caption text-ink-900/50 dark:text-mist-50/50">
+          Last updated: {zone.lastUpdate}
         </div>
       </div>
     </div>
