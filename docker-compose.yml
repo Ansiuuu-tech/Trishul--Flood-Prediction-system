@@ -30,7 +30,10 @@ services:
     command: uvicorn app.main:app --host 0.0.0.0 --port 8000
 
   frontend:
-    build: ./frontend
+    build:
+      context: ./frontend
+      args:
+        VITE_MAP_TILE_URL: ${VITE_MAP_TILE_URL:-}
     container_name: trishul-frontend
     depends_on:
       - backend
