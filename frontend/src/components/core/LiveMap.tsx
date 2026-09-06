@@ -258,16 +258,36 @@ export function LiveMap({
           <TileLayer
             url={import.meta.env.VITE_MAP_TILE_URL || "https://{s}.tile.openstreetmap.org/{z}/{x}/{y}.png"}
             attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> contributors'
+            maxNativeZoom={19}
             maxZoom={19}
           />
         </LayersControl.BaseLayer>
 
-        <LayersControl.Overlay name="Terrain (ESRI)">
+        <LayersControl.BaseLayer name="CartoDB Dark">
+          <TileLayer
+            url="https://{s}.basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png"
+            attribution='&copy; <a href="https://www.openstreetmap.org/copyright">OpenStreetMap</a> &copy; <a href="https://carto.com/">CARTO</a>'
+            maxNativeZoom={20}
+            maxZoom={20}
+            subdomains="abcd"
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.BaseLayer name="Satellite (ESRI)">
+          <TileLayer
+            url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Imagery/MapServer/tile/{z}/{y}/{x}"
+            attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
+            maxNativeZoom={19}
+            maxZoom={19}
+          />
+        </LayersControl.BaseLayer>
+
+        <LayersControl.Overlay name="Terrain Labels (ESRI)">
           <TileLayer
             url="https://server.arcgisonline.com/ArcGIS/rest/services/World_Topo_Map/MapServer/tile/{z}/{y}/{x}"
             attribution='&copy; <a href="https://www.esri.com/">Esri</a>'
             opacity={0.4}
-            maxNativeZoom={12}
+            maxNativeZoom={19}
             maxZoom={19}
           />
         </LayersControl.Overlay>
