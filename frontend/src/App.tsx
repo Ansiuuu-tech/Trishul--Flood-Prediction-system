@@ -1,6 +1,5 @@
 ﻿import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Navigation, Footer } from '@/components/layout';
-import { RequireAuth } from '@/components/auth/RequireAuth';
 import { SplashScreen } from '@/pages/SplashScreen';
 import { HomePage } from '@/pages/Home';
 import { FeaturesPage } from '@/pages/Features';
@@ -22,6 +21,7 @@ import { LoginPage } from '@/pages/Login';
 import { SignupPage } from '@/pages/Signup';
 import { NotFoundPage } from '@/pages/NotFound';
 import { StatusPage } from '@/pages/Status';
+import { SimulationControlPage } from '@/pages/SimulationControl';
 
 // Layout for marketing pages (with Navigation + Footer)
 function MarketingLayout() {
@@ -57,21 +57,17 @@ function AppRoutes() {
       {/* Marketing pages with shared layout */}
       <Route element={<MarketingLayout />}>
         <Route path="/home" element={<HomePage />} />
-
-        {/* Features overview stays public — it's marketing copy, no live data */}
         <Route path="/features" element={<FeaturesPage />} />
-
-        {/* Feature detail pages show live sensor/module data — require login */}
-        <Route path="/features/varuna-watch" element={<RequireAuth><VarunaWatchPage /></RequireAuth>} />
-        <Route path="/features/bhumi-sense" element={<RequireAuth><BhumiSensePage /></RequireAuth>} />
-        <Route path="/features/kampan-alert" element={<RequireAuth><KampanAlertPage /></RequireAuth>} />
-        <Route path="/features/trishul-core" element={<RequireAuth><TrishulCorePage /></RequireAuth>} />
-        <Route path="/features/rudra-levels" element={<RequireAuth><RudraLevelsPage /></RequireAuth>} />
-        <Route path="/features/kailash-view" element={<RequireAuth><KailashViewPage /></RequireAuth>} />
-        <Route path="/features/drishti-panel" element={<RequireAuth><DrishtiPanelPage /></RequireAuth>} />
-        <Route path="/features/ghanta-signal" element={<RequireAuth><GhantaSignalPage /></RequireAuth>} />
-
-        <Route path="/dashboard" element={<RequireAuth><DashboardPage /></RequireAuth>} />
+        <Route path="/features/varuna-watch" element={<VarunaWatchPage />} />
+        <Route path="/features/bhumi-sense" element={<BhumiSensePage />} />
+        <Route path="/features/kampan-alert" element={<KampanAlertPage />} />
+        <Route path="/features/trishul-core" element={<TrishulCorePage />} />
+        <Route path="/features/rudra-levels" element={<RudraLevelsPage />} />
+        <Route path="/features/kailash-view" element={<KailashViewPage />} />
+        <Route path="/features/drishti-panel" element={<DrishtiPanelPage />} />
+        <Route path="/features/ghanta-signal" element={<GhantaSignalPage />} />
+        <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/simulation" element={<SimulationControlPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/team" element={<TeamPage />} />
