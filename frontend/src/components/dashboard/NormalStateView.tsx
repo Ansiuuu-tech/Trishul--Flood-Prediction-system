@@ -140,7 +140,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
                           <div className="flex items-end justify-between mb-1">
                             <div className="font-mono text-xl font-medium text-ink-900 dark:text-mist-50">
-                              {z.rainfall.amount}mm
+                               {z.rainfall.amount.toFixed(1)}mm
                             </div>
                             <Sparkline value={z.rainfall.amount} color="#4C8B5A" jitter={0.3} width={72} height={24} />
                           </div>
@@ -312,7 +312,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
             <div className="absolute inset-0">
               <LiveMap
                 center={[zone.coordinates[0], zone.coordinates[1]]}
-                zoom={13}
+                zoom={10}
                 showWeatherOverlay="clouds_new"
                 zoneMarkers={zonesFromData({ zones: data.zones })}
                 showUserLocation={true}
