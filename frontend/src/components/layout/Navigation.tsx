@@ -5,19 +5,32 @@ import { TrishulMark } from '@/components/core';
 import { UserMenu } from './UserMenu';
 import { useAuth } from '@/context/AuthContext';
 
-const navItems = [
+const publicNavItems = [
   { path: '/home', label: 'Home' },
   { path: '/features', label: 'Features' },
-  { path: '/dashboard', label: 'Dashboard' },
   { path: '/about', label: 'About' },
   { path: '/team', label: 'Team' },
   { path: '/contact', label: 'Contact' },
+];
+
+// Only shown once a user is actually signed in — these routes are
+// wrapped in RequireAuth, so showing the link to guests would just
+// send them straight to a login redirect.
+const authedNavItems = [
+  { path: '/dashboard', label: 'Dashboard' },
 ];
 
 export function Navigation() {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const location = useLocation();
   const { user, isLoading, logout } = useAuth();
+
+  // While the token is being re-validated, don't show Dashboard yet —
+  // avoids a flash of the link for a guest, and avoids hiding it then
+  // popping in a beat later for a returning logged-in user.
+  const navItems = user && !isLoading
+    ? [...publicNavItems.slice(0, 2), ...authedNavItems, ...publicNavItems.slice(2)]
+    : publicNavItems;
 
   const closeAuthSession = () => {
     logout();
