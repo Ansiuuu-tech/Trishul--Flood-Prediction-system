@@ -12,6 +12,7 @@ from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, zon
 from app.schemas import HealthOut
 from app.seed_data import seed_database
 from app.simulation_engine import start_simulation
+from app.weather_poller import start_weather_poller, stop_weather_poller
 from app.ws_manager import manager
 
 settings = get_settings()
@@ -51,7 +52,15 @@ async def on_startup() -> None:
     init_db()
     with session_scope() as db:
         seed_database(db)
-    start_simulation("normal")
+    if settings.DATA_MODE == "live":
+        start_weather_poller()
+    else:
+        start_simulation("normal")
+
+
+@app.on_event("shutdown")
+async def on_shutdown() -> None:
+    stop_weather_poller()
 
 
 @app.get("/api/health", response_model=HealthOut)

@@ -233,7 +233,7 @@ async function fetchBackendRisk(): Promise<BackendRisk[]> {
   return resp.json();
 }
 
-async function fetchBackendSensors(): Promise<BackendSensor[]> {
+export async function fetchLatestSensors(): Promise<BackendSensor[]> {
   const resp = await fetch(`${API_URL}/api/sensors/latest`);
   if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
   return resp.json();
@@ -308,7 +308,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
 
   const [risksResult, sensorsResult, healthResult, weatherResult] = await Promise.allSettled([
     fetchBackendRisk(),
-    fetchBackendSensors(),
+    fetchLatestSensors(),
     fetchBackendHealth(),
     OPENWEATHER_KEY && zonesList.length > 0
       ? fetchWeather(zonesList[0].latitude, zonesList[0].longitude)

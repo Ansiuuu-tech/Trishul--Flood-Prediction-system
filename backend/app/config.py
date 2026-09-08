@@ -52,6 +52,11 @@ class Settings(BaseSettings):
     # --- Simulation ---
     SIMULATION_INTERVAL_SECONDS: float = 2.0
 
+    # --- Live weather polling ---
+    # Set DATA_MODE=live to replace simulator ticks with Open-Meteo readings.
+    DATA_MODE: str = "simulation"  # simulation | live
+    WEATHER_POLL_INTERVAL_SECONDS: float = 600.0
+
     # --- Risk model ---
     MODEL_VERSION: str = "risk-fusion-v1.0.0-demo"
     STALE_READING_SECONDS: int = 900  # 15 minutes -> data-quality warning

@@ -4,8 +4,10 @@ import { Card, Button, RudraBadge } from '@/components/ui';
 import { ContourField } from '@/components/core';
 import {
   BackendZone,
+  BackendSensor,
   fetchZones,
   fetchCurrentRisk,
+  fetchLatestSensors,
   fetchSimulationStatus,
   runSimulationScenario,
   stopSimulation,
@@ -52,6 +54,7 @@ const SCENARIOS: { id: SimulationScenario; label: string; needsZone: boolean; de
 export function SimulationControlPage() {
   const [zones, setZones] = useState<BackendZone[]>([]);
   const [risk, setRisk] = useState<Record<string, RiskAssessment>>({});
+  const [sensors, setSensors] = useState<Record<string, BackendSensor>>({});
   const [status, setStatus] = useState<SimulationStatus | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
   const [loading, setLoading] = useState(true);
@@ -60,13 +63,15 @@ export function SimulationControlPage() {
 
   const refresh = useCallback(async () => {
     try {
-      const [zonesList, riskList, simStatus] = await Promise.all([
+      const [zonesList, riskList, sensorList, simStatus] = await Promise.all([
         fetchZones(),
         fetchCurrentRisk().catch(() => []),
+        fetchLatestSensors().catch(() => []),
         fetchSimulationStatus().catch(() => null),
       ]);
       setZones(zonesList);
       setRisk(Object.fromEntries(riskList.map((r) => [r.zone_id, r])));
+      setSensors(Object.fromEntries(sensorList.map((sensor) => [sensor.zone_id, sensor])));
       setStatus(simStatus);
       setError(null);
       if (!selectedZone && zonesList.length > 0) setSelectedZone(zonesList[0].id);
@@ -121,6 +126,12 @@ export function SimulationControlPage() {
     } finally {
       setBusy(null);
     }
+  };
+
+  const sourceLabel = (source?: string) => {
+    if (source === 'weather_api') return 'Live (rainfall + soil) · tilt/vibration: no sensor';
+    if (source === 'simulator') return 'Simulated';
+    return source ? `Source: ${source}` : 'No sensor reading';
   };
 
   return (
@@ -199,6 +210,7 @@ export function SimulationControlPage() {
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
                 {zones.map((zone) => {
                   const level = risk[zone.id]?.level;
+                  const source = sensors[zone.id]?.source;
                   const isSelected = selectedZone === zone.id;
                   return (
                     <button
@@ -215,6 +227,9 @@ export function SimulationControlPage() {
                         {zone.name}
                       </p>
                       <RudraBadge level={level ? LEVEL_MAP[level] : 'safe'} size="sm" />
+                      <p className="text-caption text-ink-900/50 dark:text-mist-50/50 mt-2">
+                        {sourceLabel(source)}
+                      </p>
                     </button>
                   );
                 })}
@@ -263,6 +278,7 @@ export function SimulationControlPage() {
             <div className="space-y-3">
               {zones.map((zone) => {
                 const r = risk[zone.id];
+                const source = sensors[zone.id]?.source;
                 return (
                   <div
                     key={zone.id}
@@ -275,6 +291,9 @@ export function SimulationControlPage() {
                           Score {Math.round(r.score)} · {r.recommended_action}
                         </p>
                       )}
+                      <p className="text-caption text-ink-900/50 dark:text-mist-50/50 mt-1">
+                        {sourceLabel(source)}
+                      </p>
                     </div>
                     <RudraBadge
                       level={r ? LEVEL_MAP[r.level] : 'safe'}
