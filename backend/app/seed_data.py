@@ -23,7 +23,7 @@ import random
 
 from sqlalchemy.orm import Session
 
-from app.models import HistoricalEvent, RiskAssessment, SensorReading, User, Zone
+from app.models import EvacuationShelter, HistoricalEvent, RiskAssessment, SensorReading, User, Zone
 
 
 def _polygon(center_lat: float, center_lon: float, size: float = 0.02) -> dict:

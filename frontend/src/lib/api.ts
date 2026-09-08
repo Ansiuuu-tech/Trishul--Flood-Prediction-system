@@ -390,6 +390,85 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   };
 }
 
+// ---------- Simulation Control ----------
+// Wires the frontend to the backend's `/api/simulation/*` endpoints
+// (see backend/app/routers/simulation.py + simulation_engine.py).
+// Lets an operator/judge pick a target zone and deterministically walk it
+// through Safe -> Watch -> Warning -> Evacuate ("rapid_escalation"), or
+// simulate a dead sensor ("sensor_failure"), without touching real hardware.
+export type SimulationScenario = 'normal' | 'heavy_rain' | 'rapid_escalation' | 'sensor_failure';
+
+export interface SimulationStatus {
+  running: boolean;
+  scenario: SimulationScenario | null;
+  target_zone_id: string | null;
+  tick_interval_seconds: number;
+  ticks_elapsed: number;
+  started_at: string | null;
+}
+
+export interface RiskAssessment {
+  id: string;
+  zone_id: string;
+  score: number;
+  level: 'Safe' | 'Watch' | 'Warning' | 'Evacuate';
+  confidence: number;
+  reasons: string[];
+  recommended_action: string;
+  estimated_lead_time_minutes: number;
+  data_quality_warning: string;
+  created_at: string;
+}
+
+export async function fetchZones(): Promise<BackendZone[]> {
+  return fetchBackendZones();
+}
+
+export async function fetchCurrentRisk(): Promise<RiskAssessment[]> {
+  const resp = await fetch(`${API_URL}/api/risk/current`);
+  if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+  return resp.json();
+}
+
+export async function fetchSimulationStatus(): Promise<SimulationStatus> {
+  const resp = await fetch(`${API_URL}/api/simulation/status`);
+  if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+  return resp.json();
+}
+
+/** Start (or switch) a simulation scenario. For 'rapid_escalation' or
+ * 'sensor_failure', pass zoneId to target a single zone — every other
+ * zone keeps ticking along at its normal safe baseline. */
+export async function runSimulationScenario(
+  scenario: SimulationScenario,
+  zoneId?: string,
+): Promise<SimulationStatus> {
+  const resp = await apiFetch(`${API_URL}/api/simulation/scenario`, {
+    method: 'POST',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ scenario, zone_id: zoneId ?? null }),
+  });
+  if (!resp.ok) {
+    const detail = await resp.json().catch(() => null);
+    throw new Error(detail?.detail || `Backend error: ${resp.status}`);
+  }
+  return resp.json();
+}
+
+export async function stopSimulation(): Promise<SimulationStatus> {
+  const resp = await apiFetch(`${API_URL}/api/simulation/stop`, { method: 'POST' });
+  if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+  return resp.json();
+}
+
+/** Wipes simulated readings/assessments and reseeds every zone back to its
+ * clean baseline — the "put it back to Safe before the judges arrive" button. */
+export async function resetSimulation(): Promise<SimulationStatus> {
+  const resp = await apiFetch(`${API_URL}/api/simulation/reset`, { method: 'POST' });
+  if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+  return resp.json();
+}
+
 export interface ORSRoute {
   coordinates: [number, number][];
   distance: number;
