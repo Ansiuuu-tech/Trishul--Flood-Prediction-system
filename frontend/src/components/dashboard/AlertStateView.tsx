@@ -73,7 +73,7 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                 </h3>
                 <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative aspect-[16/9]">
                   <ContourField className="absolute inset-0" opacity={0.12} />
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 isolate z-0">
                     <LiveMap
                       center={[zone.coordinates[0], zone.coordinates[1]]}
                       zoom={10}

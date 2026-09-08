@@ -254,7 +254,10 @@ export function LiveMap({
     <MapContainer
       center={center}
       zoom={zoom}
-      className="h-full w-full"
+      // Leaflet controls and panes use high internal z-index values. Giving
+      // the map its own z-index creates a stacking context, so those values
+      // remain inside the map instead of covering navigation or modals.
+      className="relative z-0 h-full w-full"
       aria-label="Live hazard map"
     >
       <InvalidateSizeOnMount />
