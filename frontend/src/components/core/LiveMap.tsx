@@ -162,6 +162,8 @@ function WeatherOverlay({ layer }: { layer: string | null }) {
     <TileLayer
       url={`https://tile.openweathermap.org/map/${layer}/{z}/{x}/{y}.png?appid=${apiKey}`}
       opacity={0.6}
+      maxNativeZoom={10}
+      maxZoom={19}
       attribution='&copy; <a href="https://openweathermap.org/">OpenWeatherMap</a>'
     />
   );
@@ -209,6 +211,8 @@ function RainRadarOverlay({ opacity = 0.6 }: { opacity?: number }) {
       key={tileUrl} // remounts the layer whenever a newer radar frame is fetched
       url={tileUrl}
       opacity={opacity}
+      maxNativeZoom={10}
+      maxZoom={19}
       attribution='Rain radar: &copy; <a href="https://www.rainviewer.com/">RainViewer</a>'
     />
   );
@@ -228,6 +232,8 @@ function GlacierOverlay() {
       format="image/png"
       transparent
       version="1.3.0"
+      maxNativeZoom={12}
+      maxZoom={19}
       attribution='Glacier data: &copy; <a href="https://www.glims.org/">GLIMS / NSIDC</a>'
     />
   );
