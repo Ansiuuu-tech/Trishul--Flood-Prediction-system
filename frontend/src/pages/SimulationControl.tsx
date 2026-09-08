@@ -69,7 +69,9 @@ export function SimulationControlPage() {
       setRisk(Object.fromEntries(riskList.map((r) => [r.zone_id, r])));
       setStatus(simStatus);
       setError(null);
-      if (!selectedZone && zonesList.length > 0) setSelectedZone(zonesList[0].id);
+      if (zonesList.length > 0) {
+        setSelectedZone((prev) => (prev ? prev : zonesList[0].id));
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reach the backend.');
     } finally {
@@ -205,11 +207,10 @@ export function SimulationControlPage() {
                       key={zone.id}
                       type="button"
                       onClick={() => setSelectedZone(zone.id)}
-                      className={`text-left p-4 rounded-card border transition-colors duration-200 ${
-                        isSelected
+                      className={`text-left p-4 rounded-card border transition-colors duration-200 ${isSelected
                           ? 'border-signal-amber bg-signal-amber/10'
                           : 'border-stone-200 dark:border-moss-600 hover:border-signal-amber/50'
-                      }`}
+                        }`}
                     >
                       <p className="font-sans font-medium text-ink-900 dark:text-mist-50 mb-2">
                         {zone.name}
