@@ -6,7 +6,7 @@ ENV VITE_API_URL=$VITE_API_URL
 ARG VITE_MAP_TILE_URL
 ENV VITE_MAP_TILE_URL=$VITE_MAP_TILE_URL
 COPY package.json ./
-RUN npm install
+RUN npm config set strict-ssl false && npm install
 COPY . .
 RUN npm run build
 
