@@ -50,7 +50,7 @@ class SensorReading(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
     zone_id: Mapped[str] = mapped_column(ForeignKey("zones.id"), nullable=False, index=True)
-    source: Mapped[str] = mapped_column(String, default="simulator")  # simulator | esp32 | manual
+    source: Mapped[str] = mapped_column(String, default="simulator")  # simulator | esp32 | manual | weather_api
     rainfall_mm_1h: Mapped[float] = mapped_column(Float, default=0.0)
     rainfall_mm_3h: Mapped[float] = mapped_column(Float, default=0.0)
     rainfall_mm_24h: Mapped[float] = mapped_column(Float, default=0.0)

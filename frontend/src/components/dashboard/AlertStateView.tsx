@@ -73,10 +73,10 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                 </h3>
                 <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative aspect-[16/9]">
                   <ContourField className="absolute inset-0" opacity={0.12} />
-                  <div className="absolute inset-0">
+                  <div className="absolute inset-0 isolate z-0">
                     <LiveMap
                       center={[zone.coordinates[0], zone.coordinates[1]]}
-                      zoom={14}
+                      zoom={10}
                       showWeatherOverlay="precipitation_new"
                       zoneMarkers={[
                         {
@@ -108,7 +108,7 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                   </div>
                   <div className="p-4 bg-forest-800 rounded-lg border border-moss-600">
                     <div className="font-mono text-2xl font-medium text-rudra-evacuate">
-                      {zone.rainfall.amount}mm
+                      {zone.rainfall.amount.toFixed(1)}mm
                     </div>
                     <div className="text-caption text-mist-50/60">1h Rainfall (Extreme)</div>
                   </div>
@@ -127,7 +127,7 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                 </h3>
                 <div className="space-y-4">
                   {[
-                    { sensor: 'Rainfall (Varuna Watch)', value: zone.attribution.rain, color: 'fern-400', detail: `1h: ${zone.rainfall.amount}mm (${zone.rainfall.intensity})` },
+                    { sensor: 'Rainfall (Varuna Watch)', value: zone.attribution.rain, color: 'fern-400', detail: `1h: ${zone.rainfall.amount.toFixed(1)}mm (${zone.rainfall.intensity})` },
                     { sensor: 'Ground (Bhumi Sense)', value: zone.attribution.ground, color: 'moss-600', detail: `P(fail): ${zone.ground.pFailure} • Saturation: ${zone.ground.saturation}%` },
                     { sensor: 'Vibration (Kampan Alert)', value: zone.attribution.vibration, color: 'signal-amber', detail: `Class: ${zone.vibration.classification} • Score: ${zone.vibration.anomalyScore}` },
                   ].map((a) => (

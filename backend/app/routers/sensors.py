@@ -55,7 +55,12 @@ def zone_readings(zone_id: str, limit: int = 100, db: Session = Depends(get_db))
     return list(reversed(readings))
 
 
-async def _ingest_one(db: Session, payload: SensorReadingIn) -> SensorReading:
+async def ingest_reading(db: Session, payload: SensorReadingIn) -> SensorReading:
+    """Store one reading and run the standard risk, alert, and live-feed flow.
+
+    This is deliberately independent of FastAPI request state so automatic
+    sources use exactly the same pipeline as sensor hardware and manual posts.
+    """
     zone = db.get(Zone, payload.zone_id)
     if not zone:
         raise HTTPException(status_code=404, detail=f"Zone '{payload.zone_id}' not found")
@@ -138,7 +143,7 @@ async def _ingest_one(db: Session, payload: SensorReadingIn) -> SensorReading:
 
 @router.post("/reading", response_model=SensorReadingOut)
 async def post_reading(payload: SensorReadingIn, db: Session = Depends(get_db)):
-    reading = await _ingest_one(db, payload)
+    reading = await ingest_reading(db, payload)
     db.commit()
     db.refresh(reading)
     return reading
@@ -150,7 +155,7 @@ async def post_bulk(payload: SensorReadingBulkIn, db: Session = Depends(get_db))
         raise HTTPException(status_code=400, detail="readings list cannot be empty")
     results = []
     for item in payload.readings:
-        reading = await _ingest_one(db, item)
+        reading = await ingest_reading(db, item)
         results.append(reading)
     db.commit()
     for r in results:

@@ -250,6 +250,19 @@ python scripts/simulate_sensors.py --scenario sensor_failure --zone joshimath
 python scripts/simulate_sensors.py --api-url http://localhost:8000 --interval 2
 ```
 
+### Live weather polling
+
+Set `DATA_MODE=live` to start an automatic [Open-Meteo](https://open-meteo.com/)
+poller instead of the simulator. It fetches each zone's hourly precipitation and
+surface soil-moisture data every `WEATHER_POLL_INTERVAL_SECONDS` (default:
+10 minutes), then uses the ordinary sensor-ingestion path so risk scoring,
+alerts, and evacuation guidance update automatically.
+
+Open-Meteo has no tilt or vibration feed. Live-weather readings are explicitly
+tagged `weather_api` in the dashboard and carry conservative, stable placeholder
+values for those ground-sensor-only signals. They are not evidence of deployed
+tilt or vibration hardware.
+
 ---
 
 ## API overview
@@ -321,6 +334,7 @@ trishul/
 │   │   ├── risk_engine.py        # weighted multi-source scoring + escalation rules
 │   │   ├── alert_engine.py       # escalation-only alerts + cooldown
 │   │   ├── simulation_engine.py  # in-process asyncio sensor simulation
+│   │   ├── weather_poller.py     # Open-Meteo background ingestion task
 │   │   ├── ws_manager.py         # WebSocket broadcast manager
 │   │   ├── seed_data.py          # 8 real Uttarakhand zones, historical events, demo users
 │   │   ├── auth_service.py       # JWT issue/verify, OAuth user resolution
@@ -371,6 +385,8 @@ See [`.env.example`](.env.example) for the full list with comments. Nothing need
 | `FACEBOOK_CLIENT_ID` / `FACEBOOK_CLIENT_SECRET` | — | Optional Facebook OAuth |
 | `SUPABASE_URL` / `SUPABASE_SERVICE_ROLE_KEY` | — | Optional Supabase |
 | `SIMULATION_INTERVAL_SECONDS` | `2.0` | Seconds between simulation ticks |
+| `DATA_MODE` | `simulation` | `simulation` (default) or `live` Open-Meteo polling |
+| `WEATHER_POLL_INTERVAL_SECONDS` | `600` | Seconds between Open-Meteo polls per zone |
 | `STALE_READING_SECONDS` | `900` | Stale data-quality threshold (15 min) |
 | `SESSION_SECRET` / `JWT_SECRET` | random | Required for production; auto-generated for local dev |
 | `JWT_EXPIRY_HOURS` | `168` | JWT token lifetime (1 week) |
