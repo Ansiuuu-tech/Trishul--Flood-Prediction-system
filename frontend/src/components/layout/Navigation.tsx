@@ -18,6 +18,7 @@ const publicNavItems = [
 // send them straight to a login redirect.
 const authedNavItems = [
   { path: '/dashboard', label: 'Dashboard' },
+  { path: '/simulation', label: 'Simulation' },
 ];
 
 export function Navigation() {

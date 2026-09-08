@@ -21,6 +21,7 @@ import { LoginPage } from '@/pages/Login';
 import { SignupPage } from '@/pages/Signup';
 import { NotFoundPage } from '@/pages/NotFound';
 import { StatusPage } from '@/pages/Status';
+import { SimulationControlPage } from '@/pages/SimulationControl';
 
 // Layout for marketing pages (with Navigation + Footer)
 function MarketingLayout() {
@@ -66,6 +67,7 @@ function AppRoutes() {
         <Route path="/features/drishti-panel" element={<DrishtiPanelPage />} />
         <Route path="/features/ghanta-signal" element={<GhantaSignalPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
+        <Route path="/simulation" element={<SimulationControlPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/about" element={<AboutPage />} />
         <Route path="/team" element={<TeamPage />} />
