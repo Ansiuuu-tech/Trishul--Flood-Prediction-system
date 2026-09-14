@@ -17,7 +17,6 @@ const publicNavItems = [
 // wrapped in RequireAuth, so showing the link to guests would just
 // send them straight to a login redirect.
 const authedNavItems = [
-  { path: '/dashboard', label: 'Dashboard' },
   { path: '/simulation', label: 'Simulation' },
 ];
 

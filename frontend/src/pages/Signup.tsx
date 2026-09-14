@@ -29,7 +29,7 @@ export function SignupPage() {
     // Simulate auth - replace with real Firebase/Auth0/Supabase integration
     await new Promise(r => setTimeout(r, 1500));
     setIsLoading(false);
-    navigate('/features/trishul-core', { replace: true });
+    navigate('/home', { replace: true });
   };
 
   const handleOAuth = (provider: 'google' | 'facebook') => {

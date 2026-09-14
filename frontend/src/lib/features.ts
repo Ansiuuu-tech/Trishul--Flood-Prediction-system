@@ -6,8 +6,8 @@ export const features = [
   {
     id: 'varuna-watch',
     name: 'Varuna Watch',
-    myth: 'Varuna — god of water and rain',
-    description: 'Varuna Watch is the rainfall intelligence module. It ingests gauge-corrected radar estimates and ground-truth rain gauge data, computing accumulation across three operational windows — 1-hour, 3-hour, and 24-hour — with intensity classification (light, moderate, heavy, extreme) calibrated for Himalayan orographic enhancement. Output feeds directly into Trishul Core as the rainfall likelihood component.',
+    myth: 'Rainfall',
+    description: 'Tracks real-time and 3-day cumulative rainfall across the catchment. Heavy or prolonged rain is the primary trigger of flash floods, especially when it falls faster than steep hillsides and saturated soil can absorb.',
     icon: { type: 'rainfall' },
     sections: [
       { number: 1, title: 'Ingest', desc: 'Radar QPE + gauge network fused via kriging interpolation at 500m resolution.' },
@@ -45,16 +45,16 @@ export const features = [
     cta: {
       text: 'See It on the Live Dashboard',
       sub: 'Trishul Core fuses Varuna Watch with Bhumi Sense and Kampan Alert into a single Rudra Level.',
-      link: '/features/trishul-core',
-      linkLabel: 'Enter Trishul Core Demo',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
   },
   {
     id: 'bhumi-sense',
     name: 'Bhumi Sense',
-    myth: 'Bhumi — goddess of the earth',
-    description: 'Bhumi Sense monitors volumetric water content (VWC) at multiple depths and slope inclination via MEMS inclinometers. It outputs a slope stability probability (0–1) derived from a physically-based infinite-slope model parameterized with real-time pore pressure estimates. The module detects progressive saturation leading to loss of shear strength — the precursor to shallow landslides and debris flows.',
-    icon: { type: 'ground' },
+    myth: 'Soil Saturation',
+    description: 'Measures how much water the ground can still absorb. Once soil is fully saturated, further rainfall runs straight off the surface instead of soaking in, sharply accelerating flood onset.',
+    icon: { type: 'terrain' },
     sections: [
       { number: 1, title: 'Sense', desc: 'Capacitance VWC probes at 0.2m, 0.5m, 1.0m depths + biaxial tilt sensors at 0.1° resolution.' },
       { number: 2, title: 'Model', desc: 'Infinite-slope stability model with real-time pore pressure from VWC via soil-water characteristic curve.' },
@@ -88,15 +88,15 @@ export const features = [
     cta: {
       text: 'See It on the Live Dashboard',
       sub: 'Trishul Core fuses Bhumi Sense with Varuna Watch and Kampan Alert into a single Rudra Level.',
-      link: '/features/trishul-core',
-      linkLabel: 'Enter Trishul Core Demo',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
   },
   {
     id: 'kampan-alert',
     name: 'Kampan Alert',
-    myth: 'Kampan — vibration, tremor, resonance',
-    description: 'Kampan Alert operates a triaxial MEMS accelerometer array (400 Hz sampling) at each node. On-device DSP computes real-time PSD, dominant frequency, and kurtosis. A lightweight classifier distinguishes: anthropogenic noise (vehicles, construction), tectonic microseisms, and debris-flow vibration signatures (broadband 10–80 Hz with rising amplitude). Outputs vibration anomaly score (0–1) and classification label to Trishul Core.',
+    myth: 'Seismic',
+    description: 'Detects ground vibrations that often precede landslides and debris flows in hilly terrain. These events can block streams or trigger sudden water surges, compounding flood risk beyond rainfall alone.',
     icon: { type: 'vibration' },
     sections: [
       { number: 1, title: 'Sample', desc: 'Triaxial MEMS at 400 Hz, anti-aliased, GPS-time-synced across nodes.' },
@@ -134,8 +134,8 @@ export const features = [
     cta: {
       text: 'See It on the Live Dashboard',
       sub: 'Trishul Core fuses Kampan Alert with Varuna Watch and Bhumi Sense into a single Rudra Level.',
-      link: '/features/trishul-core',
-      linkLabel: 'Enter Trishul Core Demo',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
   },
   {
@@ -180,8 +180,8 @@ export const features = [
     cta: {
       text: 'Explore the Alert System',
       sub: 'Rudra Levels defines the four-tier escalation that Trishul Core outputs.',
-      link: '/features/rudra-levels',
-      linkLabel: 'View Rudra Levels',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
   },
   {
@@ -254,8 +254,8 @@ export const features = [
     cta: {
       text: 'See the Reasoning',
       sub: 'Drishti Panel explains why each zone is at its current Rudra Level.',
-      link: '/features/drishti-panel',
-      linkLabel: 'Open Drishti Panel',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
     backgroundImage: 'kailash',
   },
@@ -300,8 +300,8 @@ export const features = [
     cta: {
       text: 'See Alert Delivery',
       sub: 'Ghanta Signal routes Rudra Levels to every channel that works when power fails.',
-      link: '/features/ghanta-signal',
-      linkLabel: 'Open Ghanta Signal',
+      link: '/features',
+      linkLabel: 'View All Features',
     },
   },
   {

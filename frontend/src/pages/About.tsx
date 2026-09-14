@@ -424,13 +424,6 @@ fontFamily="General Sans, sans-serif">Chamoli (1.2 km²)</text>
               </div>
             </div>
 
-            <div className="text-center mt-12">
-              <Link to="/dashboard">
-                <Button variant="primary-pill" size="lg">
-                  See Live Evacuation Routes
-                </Button>
-              </Link>
-            </div>
           </div>
         </section>
 

@@ -1,11 +1,10 @@
 import { useEffect, useState } from 'react';
 
 const facts = [
-  '9m rise in 30 min — Trishuli, 26 Aug 2026',
-  '140 deaths, Nepal monsoon 2025',
-  '3 signals fused into 1 warning',
-  '4+ hours lead time before flood arrival',
-  '8 zones monitored in prototype',
+  '₹6,972 crore of Average annual economic loss',
+  '1,666 of Average human lives lost annually',
+  '7.38 Mha of Average area affected annually',
+  '1.2 million of Average houses damaged annually',
 ];
 
 export function SignalTicker() {

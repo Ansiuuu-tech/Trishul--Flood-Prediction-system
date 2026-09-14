@@ -21,6 +21,13 @@ export function FeatureIcon({ type }: { type: string }) {
         <path d="M12 2v2M12 20v2" />
       </svg>
     ),
+    terrain: (
+      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
+        <path d="m3 19 6-9 4 5 2-3 6 7" />
+        <path d="M3 19h18" />
+        <path d="m14 7 1.5-2L17 7l-1.5 2z" />
+      </svg>
+    ),
     vibration: (
       <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
         <path d="M4 13a8 8 0 1 1 16 0" />

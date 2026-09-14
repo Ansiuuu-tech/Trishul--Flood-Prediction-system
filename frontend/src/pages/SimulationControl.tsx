@@ -149,7 +149,6 @@ export function SimulationControlPage() {
             Pick a zone, trigger a scenario, and watch it flow through the same ingestion → risk →
             alert pipeline real sensors would use. Great for showing judges an Evacuate alert on
             demand without waiting for real weather. Open the{' '}
-            <Link to="/dashboard" className="underline hover:text-mist-50">Dashboard</Link> or{' '}
             <Link to="/status" className="underline hover:text-mist-50">Status page</Link> in another
             tab to watch it update live.
           </p>

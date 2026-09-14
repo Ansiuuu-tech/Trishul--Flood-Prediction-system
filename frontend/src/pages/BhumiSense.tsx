@@ -1,5 +1,5 @@
-import { FeaturePage } from '@/components/core';
+import { UttarakhandSoilGrid } from '@/components/core/UttarakhandSoilGrid';
 
 export function BhumiSensePage() {
-  return <FeaturePage featureId="bhumi-sense" />;
+  return <UttarakhandSoilGrid />;
 }

@@ -6,15 +6,12 @@ import { SignalTicker } from '@/components/core/SignalTicker';
 const footerLinks = {
   Product: [
     { label: 'Features', path: '/features' },
-    { label: 'Dashboard', path: '/dashboard' },
     { label: 'Varuna Watch', path: '/features/varuna-watch' },
     { label: 'Bhumi Sense', path: '/features/bhumi-sense' },
     { label: 'Kampan Alert', path: '/features/kampan-alert' },
-    { label: 'Trishul Core', path: '/features/trishul-core' },
-    { label: 'Rudra Levels', path: '/features/rudra-levels' },
-    { label: 'Kailash View', path: '/features/kailash-view' },
-    { label: 'Drishti Panel', path: '/features/drishti-panel' },
-    { label: 'Ghanta Signal', path: '/features/ghanta-signal' },
+    { label: 'Dhal Watch', path: '/features/dhal-watch' },
+    { label: 'Sankat Grid', path: '/features/sankat-grid' },
+    { label: 'Smriti Track', path: '/features/smriti-track' },
   ],
   Company: [
     { label: 'About', path: '/about' },
@@ -39,8 +36,8 @@ export function Footer() {
   return (
     <footer className="bg-forest-950 text-mist-50" role="contentinfo">
       <SignalTicker />
-      <div className="container-main py-16 lg:py-24">
-        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-8 lg:gap-12 mb-16">
+      <div className="container-main py-10 lg:py-14">
+        <div className="grid grid-cols-2 md:grid-cols-4 lg:grid-cols-5 gap-6 lg:gap-10 mb-10">
           <div className="col-span-2 lg:col-span-1">
             <Link to="/home" className="flex items-center gap-2 mb-4" aria-label="Trishul Home">
               <TrishulMark size="md" color="light" />
@@ -135,15 +132,15 @@ export function Footer() {
         </div>
 
         {/* Giant closing wordmark */}
-        <div className="my-16 lg:my-24 text-center">
-          <p className="font-display text-hero-h1 font-medium text-mist-50/10 lg:text-[clamp(4rem,10vw,8rem)] tracking-wider select-none">
+        <div className="my-10 lg:my-14 text-center">
+          <p className="font-display text-6xl font-medium text-mist-50/10 lg:text-[clamp(3rem,8vw,6rem)] tracking-wider select-none">
             Know the river.
           </p>
         </div>
 
         <div className="pt-8 border-t border-moss-600/30 flex flex-col md:flex-row items-center justify-between gap-4">
           <p className="text-caption text-mist-50/40">
-            © {currentYear} Trishul. Prototype early-warning system. Not a certified emergency service.
+            © {currentYear} Trishul is a Prototype for an early-warning system, not a certified emergency service.
           </p>
           <div className="flex items-center gap-6">
             <NavLink to="/status" variant="dark" className="text-caption">System Status</NavLink>

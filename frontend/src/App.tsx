@@ -6,11 +6,10 @@ import { FeaturesPage } from '@/pages/Features';
 import { VarunaWatchPage } from '@/pages/VarunaWatch';
 import { BhumiSensePage } from '@/pages/BhumiSense';
 import { KampanAlertPage } from '@/pages/KampanAlert';
-import { TrishulCorePage } from '@/pages/TrishulCore';
-import { RudraLevelsPage } from '@/pages/RudraLevels';
-import { KailashViewPage } from '@/pages/KailashView';
-import { DrishtiPanelPage } from '@/pages/DrishtiPanel';
-import { GhantaSignalPage } from '@/pages/GhantaSignal';
+import { EmptyFeaturePage } from '@/pages/EmptyFeaturePage';
+import { SmritiTrackPage } from '@/pages/SmritiTrack';
+import { SankatGridPage } from '@/pages/SankatGrid';
+import { DhalWatchPage } from '@/pages/DhalWatch';
 import { DashboardPage } from '@/pages/Dashboard';
 import { ProfilePage } from '@/pages/Profile';
 import { AuthCallbackPage } from '@/pages/AuthCallback';
@@ -61,11 +60,9 @@ function AppRoutes() {
         <Route path="/features/varuna-watch" element={<VarunaWatchPage />} />
         <Route path="/features/bhumi-sense" element={<BhumiSensePage />} />
         <Route path="/features/kampan-alert" element={<KampanAlertPage />} />
-        <Route path="/features/trishul-core" element={<TrishulCorePage />} />
-        <Route path="/features/rudra-levels" element={<RudraLevelsPage />} />
-        <Route path="/features/kailash-view" element={<KailashViewPage />} />
-        <Route path="/features/drishti-panel" element={<DrishtiPanelPage />} />
-        <Route path="/features/ghanta-signal" element={<GhantaSignalPage />} />
+        <Route path="/features/dhal-watch" element={<DhalWatchPage />} />
+        <Route path="/features/smriti-track" element={<SmritiTrackPage />} />
+        <Route path="/features/sankat-grid" element={<SankatGridPage />} />
         <Route path="/dashboard" element={<DashboardPage />} />
         <Route path="/simulation" element={<SimulationControlPage />} />
         <Route path="/profile" element={<ProfilePage />} />

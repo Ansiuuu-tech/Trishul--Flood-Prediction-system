@@ -1,6 +1,5 @@
 import { Link } from 'react-router-dom';
-import { RudraBadge, Card, Button } from '@/components/ui';
-import { ContourField } from '@/components/core';
+import { RudraBadge, Card } from '@/components/ui';
 import { FeatureIcon } from '@/components/core/FeaturePage';
 import { features } from '@/lib/features';
 import featuresBg from '@/assets/images/features-bg.jpeg?url';
@@ -14,7 +13,37 @@ const featureAccents: Record<string, string> = {
   'kailash-view': 'bg-gradient-to-r from-fern-400 via-moss-600 to-forest-950',
   'drishti-panel': 'bg-gradient-to-r from-signal-amber via-rudra-warn to-rudra-watch',
   'ghanta-signal': 'bg-gradient-to-r from-rudra-evacuate via-signal-amber to-rudra-warn',
+  'dhal-watch': 'bg-gradient-to-r from-rudra-safe via-rudra-watch to-rudra-warn',
+  'smriti-track': 'bg-gradient-to-r from-signal-amber via-rudra-warn to-rudra-evacuate',
+  'sankat-grid': 'bg-gradient-to-r from-rudra-watch via-rudra-warn to-rudra-evacuate',
 };
+
+const additionalFeatures = [
+  {
+    id: 'dhal-watch',
+    name: 'Dhal Watch',
+    myth: 'Slope',
+    description: 'Maps how steep the terrain is at each point. Steeper slopes shed rainwater far faster than flat ground, giving communities downstream less time to react once heavy rain begins.',
+    icon: { type: 'ground' },
+    isPlanned: true,
+  },
+  {
+    id: 'smriti-track',
+    name: 'Smriti Track',
+    myth: 'Historical flood frequency',
+    description: 'Records how often a specific location has flooded before. Areas with repeated past events carry structural risk factors — drainage patterns, land use — that make them likely to flood again.',
+    icon: { type: 'insight' },
+    isPlanned: true,
+  },
+  {
+    id: 'sankat-grid',
+    name: 'Sankat Grid',
+    myth: 'Terrain susceptibility',
+    description: 'Combines elevation, drainage density, and land cover into a single vulnerability score per zone. It flags which areas are inherently flood-prone, independent of any single day weather.',
+    icon: { type: 'core' },
+    isPlanned: true,
+  },
+];
 
 export function FeaturesPage() {
   return (
@@ -28,7 +57,7 @@ export function FeaturesPage() {
               Product Capabilities
             </p>
             <h1 id="features-hero-heading" className="font-display text-hero-h1 font-medium text-mist-50 mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-              Eight Modules.<br />
+              Six Modules<br />
               <span className="block">One Warning System.</span>
             </h1>
             <p className="text-body text-mist-50/70 max-w-3xl mx-auto animate-fade-in" style={{ animationDelay: '200ms' }}>
@@ -41,12 +70,11 @@ export function FeaturesPage() {
         <section className="section-py bg-mist-50 dark:bg-forest-950" aria-labelledby="features-grid-heading">
           <div className="container-main">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6" role="list">
-              {features.map((feature, index) => (
-                <article
-                  key={feature.id}
-                  className="card hover group"
-                  role="listitem"
-                  >
+              {[...features
+                .filter(feature => !['ghanta-signal', 'drishti-panel', 'rudra-levels', 'kailash-view', 'trishul-core'].includes(feature.id)), ...additionalFeatures]
+                .map(feature => {
+                const card = (
+                <article key={feature.id} className="card hover group h-full" role="listitem">
                   <div className="flex items-start justify-between mb-4">
                     <FeatureIcon type={feature.icon.type} />
                     <div
@@ -63,35 +91,24 @@ export function FeaturesPage() {
                   <p className="text-body text-ink-900/70 dark:text-mist-50/70 mb-6">
                     {feature.description}
                   </p>
-                  <Link
-                    to={`/features/${feature.id}`}
-                    className="link font-medium block"
-                  >
-                    Explore {feature.name} →
-                  </Link>
                 </article>
-              ))}
+                );
+
+                return (
+                  <Link
+                    key={feature.id}
+                    to={`/features/${feature.id}`}
+                    className="block h-full"
+                    aria-label={`Open ${feature.name} full page`}
+                  >
+                    {card}
+                  </Link>
+                );
+              })}
             </div>
           </div>
         </section>
 
-        {/* CTA Section */}
-        <section className="section-py bg-forest-950 relative" aria-labelledby="features-cta-heading">
-          <ContourField className="absolute inset-0" opacity={0.08} />
-          <div className="relative container-main text-center">
-            <h2 id="features-cta-heading" className="font-display text-h2 text-mist-50 mb-4">
-              Ready to see the fusion in action?
-            </h2>
-            <p className="text-body text-mist-50/60 max-w-2xl mx-auto mb-8">
-              Trishul Core is where the three signals become one warning. Walk through the live demo.
-            </p>
-            <Link to="/features/trishul-core">
-              <Button variant="primary-pill" size="lg">
-                Enter Trishul Core Demo
-              </Button>
-            </Link>
-          </div>
-        </section>
       </div>
     </div>
   );

@@ -82,14 +82,6 @@ export function UserMenu({ user, onLogout }: UserMenuProps) {
           aria-orientation="vertical"
         >
           <Link
-            to="/dashboard"
-            onClick={() => setOpen(false)}
-            className="block px-4 py-2 text-sm text-mist-50/80 hover:bg-mist-50/5 hover:text-mist-50"
-            role="menuitem"
-          >
-            Dashboard
-          </Link>
-          <Link
             to="/profile"
             onClick={() => setOpen(false)}
             className="block px-4 py-2 text-sm text-mist-50/80 hover:bg-mist-50/5 hover:text-mist-50"

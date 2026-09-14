@@ -1,5 +1,5 @@
-import { FeaturePage } from '@/components/core';
+import { UttarakhandSeismicGrid } from '@/components/core/UttarakhandSeismicGrid';
 
 export function KampanAlertPage() {
-  return <FeaturePage featureId="kampan-alert" />;
+  return <UttarakhandSeismicGrid />;
 }

@@ -71,7 +71,7 @@ export function HomePage() {
                 Trishul fuses rainfall, ground condition, and vibration into one warning system — so no village learns about a flood from the flood itself.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                <Link to="/features/trishul-core">
+                <Link to="/features">
                   <Button variant="primary-pill" size="lg">
                     See Trishul Live
                   </Button>

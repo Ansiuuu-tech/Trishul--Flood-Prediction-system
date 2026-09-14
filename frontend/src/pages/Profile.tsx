@@ -67,9 +67,6 @@ function ProfileContent() {
             </div>
 
             <div className="mt-8 flex gap-3">
-              <Link to="/dashboard">
-                <Button variant="primary-pill" size="sm">Go to Dashboard</Button>
-              </Link>
               <Button variant="secondary" size="sm" onClick={logout}>Log out</Button>
             </div>
           </div>

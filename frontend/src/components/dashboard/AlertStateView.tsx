@@ -161,11 +161,6 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                       Capacity: {zone.nearestEvacuation?.capacity}
                     </div>
                   </div>
-                  <Link to="/dashboard">
-                    <button className="w-full btn btn-secondary text-sm">
-                      Get Directions
-                    </button>
-                  </Link>
                   <button
                     type="button"
                     onClick={() => setShowEvacuationCard(true)}

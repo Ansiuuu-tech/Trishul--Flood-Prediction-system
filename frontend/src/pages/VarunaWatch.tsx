@@ -1,5 +1,5 @@
-import { FeaturePage } from '@/components/core';
+import { UttarakhandRainfallGrid } from '@/components/core/UttarakhandRainfallGrid';
 
 export function VarunaWatchPage() {
-  return <FeaturePage featureId="varuna-watch" />;
+  return <UttarakhandRainfallGrid />;
 }
