@@ -84,6 +84,7 @@ def health():
         time=dt.datetime.now(dt.timezone.utc),
         telegram_configured=settings.telegram_configured,
         email_configured=settings.email_configured,
+        sms_configured=settings.twilio_configured,
     )
 
 

@@ -71,3 +71,12 @@ def test_maybe_create_alert_skips_non_escalation():
         assert result is None
 
     asyncio.run(_run())
+
+
+def test_deliver_sms_returns_false_when_unconfigured():
+    from app.alert_engine import _deliver_sms
+
+    result = asyncio.run(_deliver_sms("test message"))
+    success = result[0] if isinstance(result, tuple) else result
+    assert success is False
+

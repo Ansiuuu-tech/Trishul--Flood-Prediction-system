@@ -54,6 +54,7 @@ def init_db() -> None:
     # OAuth/JWT phase added to an already-provisioned users table (e.g. the
     # SQLite demo DB created during an earlier run). Safe to run repeatedly.
     _ensure_users_oauth_columns()
+    _ensure_zones_columns()
 
 
 _OAUTH_USER_COLUMNS = {
@@ -65,6 +66,26 @@ _OAUTH_USER_COLUMNS = {
     "avatar_url": "TEXT",
     "home_zone_id": "TEXT",
 }
+
+
+def _ensure_zones_columns() -> None:
+    """Add district column to the zones table if missing."""
+    try:
+        inspector = inspect(engine)
+        table_names = inspector.get_table_names()
+    except Exception:
+        return
+
+    if "zones" not in table_names:
+        return
+
+    existing = {c["name"] for c in inspector.get_columns("zones")}
+    if "district" not in existing:
+        with engine.begin() as conn:
+            try:
+                conn.exec_driver_sql("ALTER TABLE zones ADD COLUMN district TEXT DEFAULT ''")
+            except Exception as e:
+                print(f"[database] failed to add district column: {e}")
 
 
 def _ensure_users_oauth_columns() -> None:

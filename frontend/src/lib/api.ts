@@ -27,6 +27,7 @@ export async function apiFetch(
 export interface BackendZone {
   id: string;
   name: string;
+  district?: string;
   description: string;
   latitude: number;
   longitude: number;
@@ -165,7 +166,7 @@ function buildZoneFromBackend(
   return {
     id: zone.id,
     name: zone.name,
-    district: extractDistrict(zone.description, zone.name),
+    district: zone.district || extractDistrict(zone.description, zone.name),
     coordinates: coords,
     shaktiScore,
     rudraLevel,
@@ -330,7 +331,7 @@ export async function fetchDashboardData(): Promise<DashboardData> {
       return {
         id: zone.id,
         name: zone.name,
-        district: extractDistrict(zone.description, zone.name),
+        district: zone.district || extractDistrict(zone.description, zone.name),
         coordinates: [zone.latitude, zone.longitude] as [number, number],
         shaktiScore: 0,
         rudraLevel: 'safe' as RudraLevel,

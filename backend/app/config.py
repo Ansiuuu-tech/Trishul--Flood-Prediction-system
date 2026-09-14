@@ -49,6 +49,12 @@ class Settings(BaseSettings):
     ALERT_EMAIL: str = ""
     ALERT_COOLDOWN_SECONDS: int = 120
 
+    # --- Twilio SMS Alerting ---
+    TWILIO_ACCOUNT_SID: str = ""
+    TWILIO_AUTH_TOKEN: str = ""
+    TWILIO_FROM_NUMBER: str = ""
+    ALERT_SMS_NUMBERS: str = ""  # Comma-separated E.164 phone numbers (e.g. +919876543210,+1234567890)
+
     # --- Simulation ---
     SIMULATION_INTERVAL_SECONDS: float = 2.0
 
@@ -103,6 +109,14 @@ class Settings(BaseSettings):
     @property
     def email_configured(self) -> bool:
         return bool(self.SMTP_HOST and self.SMTP_USERNAME and self.SMTP_PASSWORD and self.ALERT_EMAIL)
+
+    @property
+    def twilio_configured(self) -> bool:
+        return bool(self.TWILIO_ACCOUNT_SID and self.TWILIO_AUTH_TOKEN and self.TWILIO_FROM_NUMBER)
+
+    @property
+    def alert_sms_recipients(self) -> List[str]:
+        return [n.strip() for n in self.ALERT_SMS_NUMBERS.split(",") if n.strip()]
 
 
 @lru_cache

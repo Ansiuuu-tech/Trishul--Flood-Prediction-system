@@ -17,6 +17,7 @@ class ZoneOut(BaseModel):
 
     id: str
     name: str
+    district: str = ""
     description: str
     latitude: float
     longitude: float
@@ -184,8 +185,57 @@ class LoginResponse(BaseModel):
     user: UserOut
 
 
+# ---------- SMS & Alert Recipients ----------
+class AlertRecipientIn(BaseModel):
+    name: str = Field(..., description="Recipient full name")
+    phone_number: str = Field(..., description="E.164 format e.g. +919876543210")
+    role: str = Field("General", description="e.g. Gram Pradhan, DEOC Officer, SDRF Commander, Dam In-charge")
+    district: str = Field("", description="District name e.g. Chamoli")
+    zone_id: Optional[str] = Field(None, description="Optional specific village/zone ID")
+    min_alert_level: str = Field("Watch", description="Minimum alert level: Watch, Warning, Critical")
+    is_active: bool = True
+
+
+class AlertRecipientUpdate(BaseModel):
+    name: Optional[str] = None
+    phone_number: Optional[str] = None
+    role: Optional[str] = None
+    district: Optional[str] = None
+    zone_id: Optional[str] = None
+    min_alert_level: Optional[str] = None
+    is_active: Optional[bool] = None
+
+
+class AlertRecipientOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+
+    id: str
+    name: str
+    phone_number: str
+    role: str
+    district: str
+    zone_id: Optional[str] = None
+    min_alert_level: str
+    is_active: bool
+    created_at: dt.datetime
+
+
+class SendSMSIn(BaseModel):
+    to_number: str = Field(..., description="E.164 phone number e.g. +919876543210")
+    message: str = Field(..., description="Message body to send")
+
+
+class SendSMSOut(BaseModel):
+    success: bool
+    detail: str
+    to_number: str
+
+
+
 # ---------- Health ----------
 class HealthOut(BaseModel):
+    model_config = ConfigDict(protected_namespaces=())
+
     status: str
     demo_mode: bool
     model_version: str
@@ -193,3 +243,5 @@ class HealthOut(BaseModel):
     time: dt.datetime
     telegram_configured: bool
     email_configured: bool
+    sms_configured: bool = False
+

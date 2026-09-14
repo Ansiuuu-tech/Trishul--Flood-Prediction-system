@@ -160,13 +160,13 @@ export function ContactPage() {
                     <ContourField className="absolute inset-0" opacity={0.12} />
                     <div className="relative flex items-center justify-center h-full">
                       <div className="text-center">
-                        <div className="font-display text-h3 text-mist-50 mb-2">Prototype Zone</div>
-                        <div className="font-mono text-xl text-fern-400 mb-4">Dhading District, Nepal</div>
+                        <div className="font-display text-h3 text-mist-50 mb-2">Coverage Area</div>
+                        <div className="font-mono text-xl text-fern-400 mb-4">Uttarakhand State, India</div>
                         <div className="space-y-1 text-caption text-mist-50/60 max-w-xs mx-auto">
-                          <div>8 simulated zones</div>
-                          <div>24 sensor nodes</div>
-                          <div>3 fusion cores</div>
-                          <div className="text-signal-amber mt-2">Fictional coordinates — demo only</div>
+                          <div>13 monitored districts</div>
+                          <div>39 vulnerable village settlements</div>
+                          <div>Early warning & evacuation pipeline</div>
+                          <div className="text-fern-400 mt-2">Real Uttarakhand coordinates</div>
                         </div>
                       </div>
                     </div>

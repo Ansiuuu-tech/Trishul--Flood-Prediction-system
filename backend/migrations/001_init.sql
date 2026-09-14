@@ -7,6 +7,7 @@
 CREATE TABLE IF NOT EXISTS zones (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
+    district TEXT DEFAULT '',
     description TEXT DEFAULT '',
     latitude DOUBLE PRECISION NOT NULL,
     longitude DOUBLE PRECISION NOT NULL,

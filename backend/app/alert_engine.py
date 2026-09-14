@@ -18,7 +18,7 @@ import httpx
 from sqlalchemy.orm import Session
 
 from app.config import get_settings
-from app.models import Alert, Zone
+from app.models import Alert, AlertRecipient, Zone
 from app.risk_engine import LEVEL_ORDER, RiskResult
 
 settings = get_settings()
@@ -80,6 +80,70 @@ async def _deliver_email(subject: str, message: str) -> bool:
         return False
 
 
+async def _deliver_sms(message: str, to_numbers: list[str] | None = None) -> tuple[bool, str]:
+    """Deliver an SMS notification via Twilio REST API.
+    Returns (success, detail_message)."""
+    if not settings.twilio_configured:
+        return False, "Twilio credentials not configured"
+    recipients = to_numbers or settings.alert_sms_recipients
+    if not recipients:
+        return False, "No SMS recipient numbers configured in ALERT_SMS_NUMBERS"
+
+    url = f"https://api.twilio.com/2010-04-01/Accounts/{settings.TWILIO_ACCOUNT_SID}/Messages.json"
+    auth = (settings.TWILIO_ACCOUNT_SID, settings.TWILIO_AUTH_TOKEN)
+    sent_any = False
+    last_detail = ""
+
+    try:
+        async with httpx.AsyncClient(timeout=10.0) as client:
+            for number in recipients:
+                resp = await client.post(
+                    url,
+                    auth=auth,
+                    data={
+                        "From": settings.TWILIO_FROM_NUMBER,
+                        "To": number,
+                        "Body": message,
+                    },
+                )
+                if resp.status_code in (200, 201):
+                    sent_any = True
+                    last_detail = "SMS dispatched successfully via Twilio"
+                else:
+                    try:
+                        err = resp.json()
+                        last_detail = f"Twilio Error {err.get('code')}: {err.get('message')}"
+                    except Exception:
+                        last_detail = f"HTTP {resp.status_code}: {resp.text}"
+        return sent_any, last_detail
+    except Exception as e:
+        return False, str(e)
+
+
+def get_recipients_for_alert(db: Session, zone: Zone, alert_level: str) -> list[AlertRecipient]:
+    """Retrieve active SMS recipients for a zone and its district whose severity threshold is met."""
+    thresholds = ["Watch"]
+    if alert_level in ("Warning", "Critical"):
+        thresholds.append("Warning")
+    if alert_level == "Critical":
+        thresholds.append("Critical")
+
+    query = db.query(AlertRecipient).filter(
+        AlertRecipient.is_active.is_(True),
+        AlertRecipient.min_alert_level.in_(thresholds),
+    )
+
+    if zone.district:
+        query = query.filter(
+            (AlertRecipient.zone_id == zone.id) |
+            ((AlertRecipient.district.ilike(zone.district)) & (AlertRecipient.zone_id.is_(None)))
+        )
+    else:
+        query = query.filter(AlertRecipient.zone_id == zone.id)
+
+    return query.all()
+
+
 async def maybe_create_alert(
     db: Session, zone: Zone, previous_level: str, risk: RiskResult
 ) -> Alert | None:
@@ -109,6 +173,22 @@ async def maybe_create_alert(
     else:
         channels.append("email_demo_mode")
 
+    # Target SMS recipients (DEOC, Pradhans, SDRF, etc.)
+    target_recipients = get_recipients_for_alert(db, zone, risk.level)
+    target_numbers = [r.phone_number for r in target_recipients]
+    if not target_numbers and settings.alert_sms_recipients:
+        target_numbers = settings.alert_sms_recipients
+
+    sms_ok, sms_detail = await _deliver_sms(message, to_numbers=target_numbers)
+    if settings.twilio_configured:
+        channels.append("sms" if sms_ok else f"sms_failed: {sms_detail}")
+    else:
+        recipient_count = len(target_recipients)
+        if recipient_count > 0:
+            channels.append(f"sms_demo_mode ({recipient_count} recipients targeted)")
+        else:
+            channels.append("sms_demo_mode")
+
     alert = Alert(
         zone_id=zone.id,
         level=risk.level,
@@ -122,3 +202,4 @@ async def maybe_create_alert(
     db.flush()
     _mark_sent(zone.id, risk.level)
     return alert
+

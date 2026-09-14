@@ -26,6 +26,7 @@ class Zone(Base):
 
     id: Mapped[str] = mapped_column(String, primary_key=True)  # e.g. "dharali"
     name: Mapped[str] = mapped_column(String, nullable=False)
+    district: Mapped[str] = mapped_column(String, default="")
     description: Mapped[str] = mapped_column(Text, default="")
     latitude: Mapped[float] = mapped_column(Float, nullable=False)
     longitude: Mapped[float] = mapped_column(Float, nullable=False)
@@ -151,8 +152,21 @@ class User(Base):
     is_demo_account: Mapped[bool] = mapped_column(Boolean, default=True)
     oauth_provider: Mapped[str | None] = mapped_column(String, nullable=True)  # google|facebook
     oauth_id: Mapped[str | None] = mapped_column(String, nullable=True)
-    avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
-    home_zone_id: Mapped[str | None] = mapped_column(ForeignKey("zones.id"), nullable=True)
+    __table_args__ = (UniqueConstraint("oauth_provider", "oauth_id", name="uq_oauth_identity"),)
+
+
+class AlertRecipient(Base):
+    __tablename__ = "alert_recipients"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    name: Mapped[str] = mapped_column(String, nullable=False)
+    phone_number: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    role: Mapped[str] = mapped_column(String, default="General")  # Gram Pradhan, DEOC Officer, SDRF, etc.
+    district: Mapped[str] = mapped_column(String, default="", index=True)
+    zone_id: Mapped[str | None] = mapped_column(ForeignKey("zones.id"), nullable=True, index=True)
+    min_alert_level: Mapped[str] = mapped_column(String, default="Watch")  # Watch, Warning, Critical
+    is_active: Mapped[bool] = mapped_column(Boolean, default=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
-    __table_args__ = (UniqueConstraint("oauth_provider", "oauth_id", name="uq_oauth_identity"),)
+    zone: Mapped["Zone | None"] = relationship()
+

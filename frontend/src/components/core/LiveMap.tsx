@@ -27,6 +27,7 @@ export type LiveMapProps = {
   zoneMarkers?: {
     id: string;
     name: string;
+    district?: string;
     lat: number;
     lng: number;
     rudraLevel: RudraLevel;
@@ -37,8 +38,8 @@ export type LiveMapProps = {
   children?: ReactNode;
 };
 
-const DEFAULT_CENTER: [number, number] = [27.95, 84.83];
-const DEFAULT_ZOOM = 13;
+const DEFAULT_CENTER: [number, number] = [30.2, 79.2];
+const DEFAULT_ZOOM = 8;
 
 const ZONE_COLOR: Record<RudraLevel, string> = {
   safe: rudraColors.safe,
@@ -140,7 +141,9 @@ function ZoneMarkers({
         >
           <Popup>
             <div style={{ fontFamily: 'General Sans, sans-serif' }}>
-              <strong style={{ color: ZONE_COLOR[zone.rudraLevel] }}>{zone.name}</strong>
+              <strong style={{ color: ZONE_COLOR[zone.rudraLevel] }}>
+                {zone.name}{zone.district ? ` (${zone.district} Dist.)` : ''}
+              </strong>
               <br />
               Level: {zone.rudraLevel}
               {zone.shaktiScore !== undefined && (
@@ -331,6 +334,7 @@ export function zonesFromData(
   return data.zones.map((zone) => ({
     id: zone.id,
     name: zone.name,
+    district: zone.district,
     lat: zone.coordinates[0],
     lng: zone.coordinates[1],
     rudraLevel: zone.rudraLevel,

@@ -1,5 +1,5 @@
-import { useEffect, useRef, useState } from 'react';
-import { ChevronLeft, ChevronRight } from 'lucide-react';
+import { useEffect, useMemo, useRef, useState } from 'react';
+import { ChevronLeft, ChevronRight, MapPin } from 'lucide-react';
 import { Card } from '@/components/ui';
 import { RudraRing, ContourField, LiveMap, zonesFromData } from '@/components/core';
 import { DashboardData, mockDashboardData } from '@/lib/mockData';
@@ -11,11 +11,21 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
   const zones = data.zones;
   const weather = data.weather;
 
+  const districts = useMemo(() => {
+    return Array.from(new Set(zones.map((z) => z.district).filter(Boolean))).sort();
+  }, [zones]);
+
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [activeIndex, setActiveIndex] = useState(0);
   const scrollRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
-  const zone = zones[activeIndex] ?? zones[0];
+  const displayedZones = useMemo(() => {
+    if (selectedDistrict === 'All') return zones;
+    return zones.filter((z) => z.district === selectedDistrict);
+  }, [zones, selectedDistrict]);
+
+  const zone = displayedZones[activeIndex] ?? displayedZones[0] ?? zones[0];
 
   // Track which slide is centered as the user scrolls/swipes
   useEffect(() => {
@@ -34,10 +44,10 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
     );
     slideRefs.current.forEach((el) => el && observer.observe(el));
     return () => observer.disconnect();
-  }, [zones.length]);
+  }, [displayedZones.length]);
 
   const scrollToIndex = (idx: number) => {
-    const clamped = Math.max(0, Math.min(zones.length - 1, idx));
+    const clamped = Math.max(0, Math.min(displayedZones.length - 1, idx));
     slideRefs.current[clamped]?.scrollIntoView({ behavior: 'smooth', inline: 'center', block: 'nearest' });
   };
 
@@ -88,6 +98,46 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
       <div className="relative container-main py-8 space-y-8">
         <div className="grid lg:grid-cols-3 gap-8">
           <div className="lg:col-span-2 space-y-6">
+            {/* District Selector & State Summary */}
+            <div className="flex flex-wrap items-center justify-between gap-4 p-4 rounded-card bg-white/80 dark:bg-forest-900/80 border border-stone-200 dark:border-moss-600/70 shadow-sm backdrop-blur-sm">
+              <div className="flex items-center gap-3">
+                <div className="flex items-center justify-center w-8 h-8 rounded-full bg-fern-500/20 text-fern-600 dark:text-fern-400">
+                  <MapPin size={18} />
+                </div>
+                <div>
+                  <p className="font-mono text-xs text-fern-600 dark:text-fern-400 uppercase tracking-wider font-semibold">Uttarakhand State</p>
+                  <p className="text-caption text-ink-900/70 dark:text-mist-50/70">
+                    {districts.length > 0 ? `${districts.length} Districts` : '13 Districts'} · {zones.length} Vulnerable Settlements
+                  </p>
+                </div>
+              </div>
+              <div className="flex items-center gap-2">
+                <label htmlFor="district-select" className="text-caption text-ink-900/70 dark:text-mist-50/70 font-medium">
+                  District:
+                </label>
+                <select
+                  id="district-select"
+                  value={selectedDistrict}
+                  onChange={(e) => {
+                    setSelectedDistrict(e.target.value);
+                    setActiveIndex(0);
+                    scrollToIndex(0);
+                  }}
+                  className="bg-stone-100 dark:bg-forest-950 text-ink-900 dark:text-mist-50 border border-stone-300 dark:border-moss-600 rounded-btn px-3 py-1.5 text-sm font-sans focus:outline-none focus:ring-1 focus:ring-fern-400"
+                >
+                  <option value="All">All Districts ({zones.length} settlements)</option>
+                  {districts.map((d) => {
+                    const count = zones.filter((z) => z.district === d).length;
+                    return (
+                      <option key={d} value={d}>
+                        {d} ({count} settlement{count !== 1 ? 's' : ''})
+                      </option>
+                    );
+                  })}
+                </select>
+              </div>
+            </div>
+
             {/* Zone carousel — scroll or swipe to move between zones */}
             <div className="relative">
               <div
@@ -97,7 +147,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                 role="region"
                 aria-label="Zone conditions carousel"
               >
-                {zones.map((z, i) => (
+                {displayedZones.map((z, i) => (
                   <div
                     key={z.id}
                     ref={(el) => (slideRefs.current[i] = el)}
@@ -177,7 +227,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
               </div>
 
               {/* Prev/next arrows — helpful on desktop where trackpad scroll isn't obvious */}
-              {zones.length > 1 && (
+              {displayedZones.length > 1 && (
                 <>
                   <button
                     type="button"
@@ -192,7 +242,7 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                     type="button"
                     aria-label="Next zone"
                     onClick={() => scrollToIndex(activeIndex + 1)}
-                    disabled={activeIndex === zones.length - 1}
+                    disabled={activeIndex === displayedZones.length - 1}
                     className="hidden md:flex items-center justify-center absolute -right-4 top-1/2 -translate-y-1/2 w-9 h-9 rounded-full bg-white dark:bg-forest-800 border border-stone-200 dark:border-moss-600 shadow-sm disabled:opacity-30 disabled:cursor-not-allowed"
                   >
                     <ChevronRight size={18} />
@@ -201,9 +251,9 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
               )}
 
               {/* Dot indicators */}
-              {zones.length > 1 && (
+              {displayedZones.length > 1 && (
                 <div className="flex items-center justify-center gap-2 mt-4">
-                  {zones.map((z, i) => (
+                  {displayedZones.map((z, i) => (
                     <button
                       key={z.id}
                       type="button"
@@ -299,12 +349,12 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                 Live Hazard & Terrain Map
               </h3>
               <p className="text-caption text-mist-50/70 mt-1">
-                Real-time satellite terrain, glacier outlines, and live rain radar across the Chamoli monitoring grid.
+                Real-time satellite terrain, glacier outlines, and live rain radar across the Uttarakhand monitoring grid.
               </p>
             </div>
             <div className="flex items-center gap-2 text-caption text-mist-50/60 font-mono">
               <span className="inline-block w-2 h-2 rounded-full bg-rudra-safe" />
-              {data.zones.length} Zones Monitored
+              {displayedZones.length} Settlements Monitored
             </div>
           </div>
           <div className="bg-forest-950 rounded-lg border border-moss-600 overflow-hidden relative h-[520px] w-full">
@@ -312,9 +362,13 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
             <div className="absolute inset-0">
               <LiveMap
                 center={[zone.coordinates[0], zone.coordinates[1]]}
-                zoom={10}
+                zoom={selectedDistrict === 'All' ? 8 : 11}
                 showWeatherOverlay="clouds_new"
-                zoneMarkers={zonesFromData({ zones: data.zones })}
+                zoneMarkers={zonesFromData({ zones: displayedZones })}
+                onZoneSelect={(zoneId) => {
+                  const idx = displayedZones.findIndex((z) => z.id === zoneId);
+                  if (idx !== -1) scrollToIndex(idx);
+                }}
                 showUserLocation={true}
               />
             </div>

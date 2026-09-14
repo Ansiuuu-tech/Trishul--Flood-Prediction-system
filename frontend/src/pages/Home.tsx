@@ -170,7 +170,7 @@ export function HomePage() {
                       </div>
                     </div>
                     <p className="mt-6 text-caption text-mist-50/50 font-mono">
-                      Zone 3 — Dhading District — Last update: 2 min ago
+                      Raini Village — Chamoli District, Uttarakhand — Last update: 2 min ago
                     </p>
                   </div>
                 </div>
