@@ -5,6 +5,7 @@ import datetime as dt
 from fastapi import FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
+from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import get_settings
 from app.database import get_db, init_db, session_scope
@@ -33,6 +34,16 @@ app.add_middleware(
     allow_methods=["*"],
     allow_headers=["*"],
 )
+
+# Render (and most PaaS hosts) terminate TLS at a proxy and forward requests
+# to this app over plain HTTP, setting an `X-Forwarded-Proto: https` header.
+# Without this middleware, Starlette doesn't trust that header, so
+# `request.url_for(...)` in auth_oauth.py builds an `http://` redirect_uri
+# even though the app is only reachable over https:// -- and Facebook/Google
+# reject it as "not whitelisted" because it doesn't match the https:// URL
+# registered in the OAuth app settings. This makes Starlette trust the
+# forwarded proto/host so the generated redirect_uri is correctly https://.
+app.add_middleware(ProxyHeadersMiddleware, trusted_hosts="*")
 
 # Required by authlib's OAuth dance (state/pkce stored per-session between the
 # redirect to the provider and the callback).
