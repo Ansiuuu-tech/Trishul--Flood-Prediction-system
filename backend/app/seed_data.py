@@ -1015,7 +1015,6 @@ def seed_database(db: Session) -> None:
         db.query(HistoricalEvent).delete()
         db.query(EvacuationShelter).delete()
         # Nullify user home_zone_id references to deleted zones
-        db.query(User).update({User.home_zone_id: None})
         db.query(Zone).delete()
         db.commit()
 
