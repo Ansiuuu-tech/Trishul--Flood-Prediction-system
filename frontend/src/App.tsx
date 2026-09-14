@@ -1,4 +1,4 @@
-﻿import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
 import { Navigation, Footer } from '@/components/layout';
 import { SplashScreen } from '@/pages/SplashScreen';
 import { HomePage } from '@/pages/Home';
@@ -17,6 +17,8 @@ import { AuthCallbackPage } from '@/pages/AuthCallback';
 import { AboutPage } from '@/pages/About';
 import { TeamPage } from '@/pages/Team';
 import { ContactPage } from '@/pages/Contact';
+import { PrivacyPage } from '@/pages/Privacy';
+import { TermsPage } from '@/pages/Terms';
 import { LoginPage } from '@/pages/Login';
 import { SignupPage } from '@/pages/Signup';
 import { NotFoundPage } from '@/pages/NotFound';
@@ -72,6 +74,8 @@ function AppRoutes() {
         <Route path="/about" element={<AboutPage />} />
         <Route path="/team" element={<TeamPage />} />
         <Route path="/contact" element={<ContactPage />} />
+        <Route path="/privacy" element={<PrivacyPage />} />
+        <Route path="/terms" element={<TermsPage />} />
         <Route path="/status" element={<StatusPage />} />
       </Route>
 
