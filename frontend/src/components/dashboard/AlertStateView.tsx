@@ -205,10 +205,10 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
             <div className="flex items-center justify-between">
               <div>
                 <h3 className="font-display text-h3 text-mist-50">
-                  Current Weather — {weather.location}
+                  Current Weather — {(zone.weather || weather).location}
                 </h3>
                 <p className="text-body text-mist-50/60">
-                  {weather.temperature}°C • {weather.condition} • {weather.humidity}% humidity • {weather.windSpeed} km/h wind
+                  {(zone.weather || weather).temperature}°C • {(zone.weather || weather).condition} • {(zone.weather || weather).humidity}% humidity • {(zone.weather || weather).windSpeed} km/h wind
                 </p>
               </div>
               <RudraRing level={zone.rudraLevel} shaktiScore={zone.shaktiScore} pulse={true} />
