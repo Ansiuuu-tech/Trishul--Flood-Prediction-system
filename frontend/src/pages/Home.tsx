@@ -1,53 +1,17 @@
 import { Link } from 'react-router-dom';
-import { Button, RudraBadge } from '@/components/ui';
-import { TrishulMark, ContourField, DamageScene } from '@/components/core';
+import { Button } from '@/components/ui';
+import { ContourField, DamageScene } from '@/components/core';
 import { KAILASH_BG } from '@/components/core/FeaturePage';
 
-const features = [
-  {
-    id: 'varuna-watch',
-    name: 'Varuna Watch',
-    myth: 'Rainfall monitoring',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M12 2v20M5 12h14M7 7l10 10M17 7l-10 10"/>
-        <circle cx="12" cy="12" r="3"/>
-      </svg>
-    ),
-    description: 'Multi-window rainfall intelligence — 1h, 3h, 24h accumulation with intensity classification.',
-  },
-  {
-    id: 'bhumi-sense',
-    name: 'Bhumi Sense',
-    myth: 'Soil moisture + slope tilt',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M3 12h18M3 18h18M9 6v12M15 6v12"/>
-        <path d="M12 2v2M12 20v2"/>
-      </svg>
-    ),
-    description: 'Volumetric water content and inclinometry fused into slope stability probability.',
-  },
-  {
-    id: 'kampan-alert',
-    name: 'Kampan Alert',
-    myth: 'Vibration / seismic detection',
-    icon: (
-      <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" aria-hidden="true">
-        <path d="M4 13a8 8 0 1 1 16 0"/>
-        <path d="M4 11a10 10 0 1 1 16 0"/>
-        <path d="M12 2v20M12 22v2"/>
-      </svg>
-    ),
-    description: 'MEMS accelerometer array detecting precursor tremors and debris-flow vibration signatures.',
-  },
-];
+const IMD_RADAR_URL = 'https://mausam.imd.gov.in/Radar/MOSAIC/Converted/mosaic.gif';
+const IMD_SATELLITE_URL = 'https://mausam.imd.gov.in/Satellite/3Dasiasec_ir1.jpg';
+const IMD_LIGHTNING_URL = 'https://mausam.imd.gov.in/lightning/Converted/BT.gif';
 
 const stats = [
-  { value: '9m', label: 'River rise in 30 min (Trishuli, Aug 2026)' },
-  { value: '3', label: 'Signals fused: rain, ground, vibration' },
-  { value: '8', label: 'Zones covered in prototype' },
-  { value: '<6hr', label: 'Typical warning window in hilly terrain' },
+  { value: '7.38 Mha', label: 'Average area affected annually' },
+  { value: '1.2 million', label: 'Average houses damaged annually' },
+  { value: '1,666', label: 'Average human lives lost annually' },
+  { value: '₹6,972 crore', label: 'Average annual economic loss' },
 ];
 
 export function HomePage() {
@@ -78,7 +42,7 @@ export function HomePage() {
                 </Link>
                 <Link to="/about">
                   <Button variant="secondary" size="lg">
-                    Read about Flash Floods..
+                    How It Works
                   </Button>
                 </Link>
               </div>
@@ -93,41 +57,137 @@ export function HomePage() {
           <div className="container-main">
             <div className="text-center max-w-3xl mx-auto mb-16">
               <h2 id="three-prongs-heading" className="font-display text-h2 text-ink-900 dark:text-mist-50 mb-4">
-                Three Prongs. One System.
+                Three prongs, one warning
               </h2>
               <p className="text-body text-ink-900/60 dark:text-mist-50/60">
-                Each module watches a different signal. Trishul Core fuses them into a single Rudra Level — the alert the village actually receives.
+                Trishul is built as three linked stages — the system takes its name from the three-pronged instrument, each prong carrying the warning one step closer to the people who need to act on it.
               </p>
             </div>
 
             <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-              {features.map((feature, index) => (
-                <article
-                  key={feature.id}
-                  className="card hover group"
-                  style={{ animationDelay: `${index * 60}ms` }}
-                >
-                  <div className="text-fern-400 mb-4" aria-hidden="true">
-                    {feature.icon}
-                  </div>
-                  <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-2">
-                    {feature.name}
-                  </h3>
-                  <p className="font-mono text-caption text-ink-900/40 dark:text-mist-50/40 mb-3">
-                    {feature.myth}
-                  </p>
-                  <p className="text-body text-ink-900/70 dark:text-mist-50/70 mb-6">
-                    {feature.description}
-                  </p>
-                  <Link
-                    to={`/features/${feature.id}`}
-                    className="link font-medium"
-                  >
-                    Learn more →
-                  </Link>
+              <Link to="/features" className="block h-full" aria-label="Open the feature grid">
+                <article className="card hover group h-full">
+                <p className="font-mono text-caption text-accent-light mb-4">01 — DETECT</p>
+                <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-3">Sense &amp; Fuse</h3>
+                <p className="text-body text-ink-900/70 dark:text-mist-50/70 mb-6">
+                  Ground sensors and satellite feeds capture rainfall, soil, slope, seismic and terrain data, aligned onto one timeline and catchment map with gaps filled and confidence-scored.
+                </p>
+                <ul className="space-y-2 text-body text-ink-900/70 dark:text-mist-50/70">
+                  <li>Multi-source sensing</li>
+                  <li>Time &amp; spatial alignment</li>
+                  <li>Gap-filled, confidence-scored</li>
+                </ul>
                 </article>
-              ))}
+              </Link>
+
+              <Link to="/features" className="block h-full" aria-label="Open the feature grid">
+                <article className="card hover group h-full">
+                <p className="font-mono text-caption text-fern-400 mb-4">02 — PREDICT</p>
+                <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-3">Predict &amp; Score</h3>
+                <p className="text-body text-ink-900/70 dark:text-mist-50/70 mb-6">
+                  A physics-based model sets a hydrological baseline; machine learning corrects it using historical patterns, producing a calibrated risk score with confidence and explainability attached.
+                </p>
+                <ul className="space-y-2 text-body text-ink-900/70 dark:text-mist-50/70">
+                  <li>Hybrid physics + ML model</li>
+                  <li>Explainable predictions</li>
+                  <li>Calibrated risk score</li>
+                </ul>
+                </article>
+              </Link>
+
+              <Link to="/features" className="block h-full" aria-label="Open the feature grid">
+                <article className="card hover group h-full">
+                <p className="font-mono text-caption text-signal-amber mb-4">03 — ALERT</p>
+                <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-3">Alert &amp; Act</h3>
+                <p className="text-body text-ink-900/70 dark:text-mist-50/70 mb-6">
+                  Once risk crosses a threshold, warnings reach people via SMS, sirens and local relays — backed by a dashboard showing risk by region, state and river basin.
+                </p>
+                <ul className="space-y-2 text-body text-ink-900/70 dark:text-mist-50/70">
+                  <li>Multi-channel alerts</li>
+                  <li>Region/state/basin dashboard</li>
+                  <li>Backtested against real floods</li>
+                </ul>
+                </article>
+              </Link>
             </div>
+          </div>
+        </section>
+
+        {/* Kailash View */}
+        <section className="section-py bg-forest-950 relative overflow-hidden" aria-labelledby="kailash-view-heading">
+          <ContourField className="absolute inset-0" opacity={0.1} drift={true} />
+          <div className="relative container-main">
+            <div className="flex flex-col lg:flex-row lg:items-end lg:justify-between gap-6 mb-12">
+              <div className="max-w-3xl">
+                <p className="font-mono text-caption text-signal-amber tracking-widest uppercase mb-3">Live atmospheric window</p>
+                <h2 id="kailash-view-heading" className="font-display text-h2 text-mist-50 mb-4">Kailash View</h2>
+                <p className="text-body text-mist-50/65">
+                  A high-altitude glance across the signals above Uttarakhand: satellite cloud structure, radar rain echoes, and the lightning nowcast that turns a distant storm into a local decision.
+                </p>
+              </div>
+              <a
+                href="https://mausam.imd.gov.in/imd_latest/contents/satellite.php"
+                target="_blank"
+                rel="noreferrer"
+                className="link text-mist-50 whitespace-nowrap"
+              >
+                Open IMD source →
+              </a>
+            </div>
+
+            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
+              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
+                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+                  <img
+                    src={IMD_SATELLITE_URL}
+                    alt="Live IMD infrared satellite view of Asia"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="p-5">
+                  <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-2">01 / Satellite</p>
+                  <h3 className="font-display text-h3 text-mist-50 mb-2">Infrared satellite</h3>
+                  <p className="text-caption text-mist-50/60 mb-4">Live cloud temperature and storm structure from IMD's Asia sector view.</p>
+                  <a href="https://mausam.imd.gov.in/responsive/satellite.php" target="_blank" rel="noreferrer" className="link text-caption text-mist-50">Open IMD satellite →</a>
+                </div>
+              </article>
+
+              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
+                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+                  <img
+                    src={IMD_RADAR_URL}
+                    alt="Live IMD mosaic radar reflectivity map"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="p-5">
+                  <p className="font-mono text-caption text-signal-amber tracking-widest uppercase mb-2">02 / Radar</p>
+                  <h3 className="font-display text-h3 text-mist-50 mb-2">Radar reflectivity</h3>
+                  <p className="text-caption text-mist-50/60 mb-4">Live precipitation echoes from the IMD radar network, matching the Mausam radar view.</p>
+                  <a href="https://mausam.imd.gov.in/responsive/radar.php" target="_blank" rel="noreferrer" className="link text-caption text-mist-50">Open IMD radar →</a>
+                </div>
+              </article>
+
+              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
+                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+                  <img
+                    src={IMD_LIGHTNING_URL}
+                    alt="Live IMD brightness temperature lightning map"
+                    className="h-full w-full object-cover"
+                  />
+                </div>
+                <div className="p-5">
+                  <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-2">03 / Lightning</p>
+                  <h3 className="font-display text-h3 text-mist-50 mb-2">District nowcast</h3>
+                  <p className="text-caption text-mist-50/60 mb-4">Live IMD warning map for thunderstorms, lightning, and other district-level hazards.</p>
+                  <div className="flex flex-wrap gap-4 text-caption">
+                    <a href="https://mausam.imd.gov.in/responsive/districtWiseNowcastGIS.php" target="_blank" rel="noreferrer" className="link text-mist-50">Open IMD nowcast →</a>
+                    <a href="https://play.google.com/store/apps/details?id=com.lightening.live.damini" target="_blank" rel="noreferrer" className="link text-mist-50">Damini →</a>
+                  </div>
+                </div>
+              </article>
+            </div>
+            <p className="mt-5 text-caption text-mist-50/40">Imagery is served by the India Meteorological Department and may refresh on its own schedule.</p>
           </div>
         </section>
 
@@ -136,42 +196,47 @@ export function HomePage() {
           <ContourField className="absolute inset-0" opacity={0.08} drift={true} />
           
           <div className="relative container-main">
-            <div className="text-center max-w-3xl mx-auto mb-16">
-              <h2 id="system-action-heading" className="font-display text-h2 text-mist-50 mb-4">
-                System in Action
-              </h2>
-              <p className="text-body text-mist-50/60">
-                Live demo of Trishul Core fusing three sensor streams into a Rudra Level. This is the actual Tandav demo mode — not a screenshot.
-              </p>
-            </div>
+            <div className="max-w-5xl mx-auto rounded-card border border-moss-600 bg-forest-800 p-6 sm:p-8 lg:p-10">
+              <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-8">
+                <h2 id="system-action-heading" className="font-display text-h2 text-mist-50">
+                  Risk status — live
+                </h2>
+                <span className="inline-flex items-center gap-2 self-start rounded-pill border border-fern-400/30 bg-fern-400/10 px-3 py-1.5 font-mono text-caption text-fern-400" role="status" aria-live="polite">
+                  <span className="h-2 w-2 rounded-full bg-fern-400 animate-pulse" aria-hidden="true" />
+                  Updated recently
+                </span>
+              </div>
 
-            <div className="card-dark max-w-4xl mx-auto">
-              <div className="aspect-[16/9] relative rounded-lg bg-forest-950 border border-moss-600 overflow-hidden">
-                <div className="absolute inset-0 flex items-center justify-center">
-                  <div className="text-center p-8">
-                    <div className="flex flex-wrap justify-center gap-3 mb-6" role="status" aria-live="polite" aria-label="Live Rudra Level demonstration">
-                      <RudraBadge level="safe" pulse={false} />
-                      <RudraBadge level="watch" pulse={false} />
-                      <RudraBadge level="warn" pulse={true} />
-                      <RudraBadge level="evacuate" pulse={true} />
-                    </div>
-                    <div className="grid grid-cols-3 gap-4 text-center">
-                      <div className="p-4 bg-forest-800 rounded-lg border border-moss-600">
-                        <p className="font-mono text-2xl font-medium text-fern-400">142mm</p>
-                        <p className="text-caption text-mist-50/60 mt-1">1h Rainfall</p>
-                      </div>
-                      <div className="p-4 bg-forest-800 rounded-lg border border-moss-600">
-                        <p className="font-mono text-2xl font-medium text-fern-400">67%</p>
-                        <p className="text-caption text-mist-50/60 mt-1">Soil Saturation</p>
-                      </div>
-                      <div className="p-4 bg-forest-800 rounded-lg border border-moss-600">
-                        <p className="font-mono text-2xl font-medium text-fern-400">0.34g</p>
-                        <p className="text-caption text-mist-50/60 mt-1">Peak Vibration</p>
-                      </div>
-                    </div>
-                    <p className="mt-6 text-caption text-mist-50/50 font-mono">
-                      Raini Village — Chamoli District, Uttarakhand — Last update: 2 min ago
-                    </p>
+              <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
+                <div>
+                  <svg className="w-full h-auto rounded-lg border border-moss-600 bg-forest-950 p-4" viewBox="0 0 420 150" fill="none" role="img" aria-label="Basin status map showing low, moderate, high, and extreme risk points">
+                    <path d="M10 20 C 60 40, 90 10, 140 35 C 190 60, 220 30, 270 55 C 320 80, 350 60, 410 90" stroke="#3E5A76" strokeWidth="2" fill="none" />
+                    <path d="M30 90 C 80 100, 120 80, 170 100 C 220 120, 260 95, 320 115 C 360 128, 380 118, 405 130" stroke="#4A6E8C" strokeWidth="2" fill="none" />
+                    <circle cx="140" cy="35" r="5" fill="#7FD79A" />
+                    <circle cx="270" cy="55" r="5" fill="#DFA23B" />
+                    <circle cx="170" cy="100" r="5" fill="#E38377" />
+                    <circle cx="320" cy="115" r="5" fill="#7FD79A" />
+                    <circle cx="60" cy="40" r="5" fill="#7FD79A" />
+                  </svg>
+                  <p className="mt-3 font-mono text-caption text-mist-50/45">Basin signal field · Uttarakhand · live synthesis</p>
+                </div>
+
+                <div className="space-y-3" aria-label="Flood risk zones and required actions">
+                  <div className="flex gap-3 rounded-lg border border-rudra-evacuate/30 bg-rudra-evacuate/10 p-4">
+                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-rudra-evacuate" aria-hidden="true" />
+                    <div><strong className="text-rudra-evacuate">Red · Extreme risk</strong><p className="mt-1 text-caption text-mist-50/65">Flooding is imminent or underway. Evacuate affected areas and activate emergency response.</p></div>
+                  </div>
+                  <div className="flex gap-3 rounded-lg border border-rudra-warn/30 bg-rudra-warn/10 p-4">
+                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-rudra-warn" aria-hidden="true" />
+                    <div><strong className="text-rudra-warn">Orange · High risk</strong><p className="mt-1 text-caption text-mist-50/65">Dangerous conditions are likely. Issue warnings, prepare shelters, and move people from vulnerable zones.</p></div>
+                  </div>
+                  <div className="flex gap-3 rounded-lg border border-rudra-watch/30 bg-rudra-watch/10 p-4">
+                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-rudra-watch" aria-hidden="true" />
+                    <div><strong className="text-rudra-watch">Yellow · Moderate risk</strong><p className="mt-1 text-caption text-mist-50/65">Conditions need close monitoring. Verify sensors, brief response teams, and prepare public advisories.</p></div>
+                  </div>
+                  <div className="flex gap-3 rounded-lg border border-rudra-safe/30 bg-rudra-safe/10 p-4">
+                    <span className="mt-1 h-3 w-3 shrink-0 rounded-full bg-rudra-safe" aria-hidden="true" />
+                    <div><strong className="text-rudra-safe">Green · Low risk</strong><p className="mt-1 text-caption text-mist-50/65">No immediate threat is detected. Continue routine monitoring and keep response plans ready.</p></div>
                   </div>
                 </div>
               </div>
@@ -187,7 +252,7 @@ export function HomePage() {
                 Before Trishul / After Trishul
               </h2>
               <p className="text-body text-ink-900/60 dark:text-mist-50/60">
-                Water-level-only systems see the flood after it arrives. Trishul sees the conditions that create it.
+                Single signal systems see the flood after it arrives. Trishul sees the conditions that create it.
               </p>
             </div>
 
@@ -201,9 +266,7 @@ export function HomePage() {
                     Before Trishul
                   </span>
                   <h3 className="font-display text-h3 text-mist-50 mb-4">Single signal. Blind spots.</h3>
-                  <p className="text-body text-mist-50/70 mb-6">
-                    The legacy system monitored only river stage. On 26 August 2026, the Trishuli rose 9 metres in 30 minutes — triggered by a glacier collapse the water-level sensor never saw coming.
-                  </p>
+                  <p className="text-body text-mist-50/70 mb-6">Most current flood forecasting in India, including CWC's core method, still relies mainly on a single signal — either river water level observed upstream, or rainfall alone — rather than fusing ground, terrain, and seismic conditions together.</p>
                   <ul className="space-y-3 text-mist-50/70">
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-evacuate flex-shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -211,11 +274,11 @@ export function HomePage() {
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-evacuate flex-shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                      <span>No soil stability monitoring</span>
+                      <span>Ignores terrain/slope</span>
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-evacuate flex-shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
-                      <span>No precursor vibration detection</span>
+                      <span>Single point failure</span>
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-evacuate flex-shrink-0" aria-hidden="true"><circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/><line x1="12" y1="16" x2="12.01" y2="16"/></svg>
@@ -234,26 +297,25 @@ export function HomePage() {
                   <span className="inline-block px-3 py-1 rounded-btn bg-rudra-safe/20 text-rudra-safe text-caption font-medium mb-4">
                     After Trishul
                   </span>
-                  <h3 className="font-display text-h3 text-mist-50 mb-4">Three signals. Early warning.</h3>
-                  <p className="text-body text-mist-50/70 mb-6">
-                    Varuna Watch detects extreme rainfall intensity. Bhumi Sense measures slope saturation approaching failure. Kampan Alert picks up debris-flow vibration signatures. Trishul Core fuses them — issuing a Warning level 4+ hours before water reaches the village.
-                  </p>
+                  <h3 className="font-display text-h3 text-mist-50 mb-4">Six signals.Early warning.</h3>
+                  <p className="text-body text-mist-50/70 mb-6">Trishul doesn't just predict floods — it fuses six independent ground and satellite signals through a hybrid physics-plus-AI model built specifically for hilly terrain, where generic flood systems fail.
+It turns that prediction into a 20+ minute head start and an alert that actually reaches the village, not just a dashboard for officials.</p>
                   <ul className="space-y-3 text-mist-50/70">
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-safe flex-shrink-0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      <span>Rainfall intensity + accumulation windows</span>
+                      <span>Rainfall intensity + accumulation </span>
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-safe flex-shrink-0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      <span>Volumetric soil moisture + tilt</span>
+                      <span>Soil Saturation + Terrain Susceptibility</span>
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-safe flex-shrink-0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      <span>MEMS vibration classification</span>
+                      <span>Detect Ground vibrations and slopes</span>
                     </li>
                     <li className="flex items-center gap-3">
                       <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" className="text-rudra-safe flex-shrink-0" aria-hidden="true"><path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/></svg>
-                      <span>Rudra Level issued hours in advance</span>
+                      <span>Track historical frequency</span>
                     </li>
                   </ul>
                 </div>
@@ -269,11 +331,11 @@ export function HomePage() {
           <div className="relative container-main">
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-8 lg:gap-12 text-center">
               {stats.map((stat, index) => (
-                <div key={stat.label} style={{ animationDelay: `${index * 60}ms` }}>
-                  <div className="stat-number mb-2 animate-fade-in" style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'forwards', opacity: 0 }}>
+                <div key={stat.label} className="flex h-full flex-col items-center" style={{ animationDelay: `${index * 60}ms` }}>
+                  <div className="stat-number mb-2 flex h-14 items-center whitespace-nowrap animate-fade-in" style={{ animationDelay: `${index * 60}ms`, animationFillMode: 'forwards', opacity: 0 }}>
                     {stat.value}
                   </div>
-                  <div className="stat-label animate-fade-in" style={{ animationDelay: `${index * 60 + 100}ms`, animationFillMode: 'forwards', opacity: 0 }}>
+                  <div className="stat-label min-h-10 max-w-[13rem] text-center animate-fade-in" style={{ animationDelay: `${index * 60 + 100}ms`, animationFillMode: 'forwards', opacity: 0 }}>
                     {stat.label}
                   </div>
                 </div>

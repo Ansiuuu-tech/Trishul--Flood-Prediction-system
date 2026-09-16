@@ -1,4 +1,5 @@
-import { BrowserRouter, Routes, Route, Navigate, Outlet } from 'react-router-dom';
+import { useEffect } from 'react';
+import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Navigation, Footer } from '@/components/layout';
 import { SplashScreen } from '@/pages/SplashScreen';
 import { HomePage } from '@/pages/Home';
@@ -14,7 +15,6 @@ import { DashboardPage } from '@/pages/Dashboard';
 import { ProfilePage } from '@/pages/Profile';
 import { AuthCallbackPage } from '@/pages/AuthCallback';
 import { AboutPage } from '@/pages/About';
-import { TeamPage } from '@/pages/Team';
 import { ContactPage } from '@/pages/Contact';
 import { PrivacyPage } from '@/pages/Privacy';
 import { TermsPage } from '@/pages/Terms';
@@ -40,9 +40,21 @@ function AuthLayout() {
   return <div className="min-h-screen"><Outlet /></div>;
 }
 
+function ScrollToTop() {
+  const { pathname } = useLocation();
+
+  useEffect(() => {
+    window.scrollTo({ top: 0, left: 0, behavior: 'auto' });
+  }, [pathname]);
+
+  return null;
+}
+
 function AppRoutes() {
   return (
-    <Routes>
+    <>
+      <ScrollToTop />
+      <Routes>
       {/* Splash screen - shown once per session */}
       <Route path="/" element={<SplashScreen />} />
 
@@ -69,7 +81,6 @@ function AppRoutes() {
         <Route path="/simulation" element={<SimulationControlPage />} />
         <Route path="/profile" element={<ProfilePage />} />
         <Route path="/about" element={<AboutPage />} />
-        <Route path="/team" element={<TeamPage />} />
         <Route path="/contact" element={<ContactPage />} />
         <Route path="/privacy" element={<PrivacyPage />} />
         <Route path="/terms" element={<TermsPage />} />
@@ -78,7 +89,8 @@ function AppRoutes() {
 
       {/* 404 fallback */}
       <Route path="*" element={<NotFoundPage />} />
-    </Routes>
+      </Routes>
+    </>
   );
 }
 

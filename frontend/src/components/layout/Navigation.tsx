@@ -8,8 +8,7 @@ import { useAuth } from '@/context/AuthContext';
 const publicNavItems = [
   { path: '/home', label: 'Home' },
   { path: '/features', label: 'Features' },
-  { path: '/about', label: 'About' },
-  { path: '/team', label: 'Team' },
+  { path: '/about', label: 'How It Works' },
   { path: '/contact', label: 'Contact' },
 ];
 

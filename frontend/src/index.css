@@ -203,10 +203,10 @@ body {
 
   /* Stat numbers */
   .stat-number {
-    @apply font-display font-semibold text-hero-h1 text-ink-900 dark:text-mist-50;
+    @apply font-display font-semibold text-4xl md:text-5xl text-ink-900 dark:text-mist-50;
   }
   .stat-label {
-    @apply font-sans text-caption text-ink-900/60 dark:text-mist-50/60;
+    @apply font-sans text-sm text-ink-900/60 dark:text-mist-50/60;
   }
 
   /* Hero gradient text */

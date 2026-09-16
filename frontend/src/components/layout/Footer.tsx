@@ -14,8 +14,7 @@ const footerLinks = {
     { label: 'Smriti Track', path: '/features/smriti-track' },
   ],
   Company: [
-    { label: 'About', path: '/about' },
-    { label: 'Team', path: '/team' },
+    { label: 'How It Works', path: '/about' },
     { label: 'Contact', path: '/contact' },
   ],
   Legal: [
