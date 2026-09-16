@@ -249,7 +249,87 @@ async function fetchBackendHealth(): Promise<{ status: string; demo_mode: boolea
   }
 }
 
-async function fetchWeather(lat: number, lon: number): Promise<OWCurrent & { forecast: OWForecast }> {
+const OPENWEATHER_ENDPOINT = 'https://api.openweathermap.org/data/2.5';
+const OPEN_METEO_ENDPOINT = 'https://api.open-meteo.com/v1/forecast';
+
+// Cache weather responses for 5 minutes (300,000 ms) to avoid redundant requests
+const weatherCache = new Map<string, { data: WeatherData; timestamp: number }>();
+const WEATHER_CACHE_TTL_MS = 5 * 60 * 1000;
+
+function getWmoWeatherDescription(code: number): string {
+  switch (code) {
+    case 0: return 'Clear Sky';
+    case 1: return 'Mainly Clear';
+    case 2: return 'Partly Cloudy';
+    case 3: return 'Overcast';
+    case 45: return 'Foggy';
+    case 48: return 'Depositing Rime Fog';
+    case 51: return 'Light Drizzle';
+    case 53: return 'Moderate Drizzle';
+    case 55: return 'Dense Drizzle';
+    case 56: return 'Light Freezing Drizzle';
+    case 57: return 'Dense Freezing Drizzle';
+    case 61: return 'Slight Rain';
+    case 63: return 'Moderate Rain';
+    case 65: return 'Heavy Rain';
+    case 66: return 'Light Freezing Rain';
+    case 67: return 'Heavy Freezing Rain';
+    case 71: return 'Slight Snow Fall';
+    case 73: return 'Moderate Snow Fall';
+    case 75: return 'Heavy Snow Fall';
+    case 77: return 'Snow Grains';
+    case 80: return 'Slight Rain Showers';
+    case 81: return 'Moderate Rain Showers';
+    case 82: return 'Violent Rain Showers';
+    case 85: return 'Slight Snow Showers';
+    case 86: return 'Heavy Snow Showers';
+    case 95: return 'Thunderstorm';
+    case 96: return 'Thunderstorm with Slight Hail';
+    case 99: return 'Thunderstorm with Heavy Hail';
+    default: return 'Clear';
+  }
+}
+
+async function fetchFromOpenMeteo(lat: number, lon: number, locationName: string): Promise<WeatherData> {
+  const params = new URLSearchParams({
+    latitude: lat.toString(),
+    longitude: lon.toString(),
+    current: 'temperature_2m,relative_humidity_2m,weather_code,wind_speed_10m,precipitation',
+    hourly: 'temperature_2m,precipitation_probability,weather_code',
+    forecast_hours: '15',
+  });
+
+  const resp = await fetch(`${OPEN_METEO_ENDPOINT}?${params}`);
+  if (!resp.ok) throw new Error(`Open-Meteo error: ${resp.status}`);
+  const data = await resp.json();
+
+  const current = data.current || {};
+  const hourly = data.hourly || { time: [], temperature_2m: [], precipitation_probability: [] };
+
+  const forecast = (hourly.time || [])
+    .slice(0, 5)
+    .map((timeStr: string, idx: number) => {
+      const dateObj = new Date(timeStr);
+      return {
+        timestamp: Math.floor(dateObj.getTime() / 1000),
+        time: idx === 0 ? 'Now' : `${idx * 3}h`,
+        date: dateObj.toISOString().split('T')[0],
+        temp: Math.round(hourly.temperature_2m?.[idx * 3] ?? current.temperature_2m ?? 15),
+        rainProb: Math.round(hourly.precipitation_probability?.[idx * 3] ?? 0),
+      };
+    });
+
+  return {
+    location: locationName ? `${locationName} District` : 'Himalayan Region',
+    temperature: Math.round(current.temperature_2m ?? 14),
+    condition: getWmoWeatherDescription(current.weather_code ?? 0),
+    humidity: Math.round(current.relative_humidity_2m ?? 75),
+    windSpeed: Math.round(current.wind_speed_10m ?? 10),
+    forecast,
+  };
+}
+
+async function fetchFromOpenWeather(lat: number, lon: number, locationName: string): Promise<WeatherData> {
   const params = new URLSearchParams({
     lat: lat.toString(),
     lon: lon.toString(),
@@ -258,44 +338,76 @@ async function fetchWeather(lat: number, lon: number): Promise<OWCurrent & { for
   });
 
   const currentResp = await fetch(`${OPENWEATHER_ENDPOINT}/weather?${params}`);
-  if (!currentResp.ok) throw new Error(`Weather API error: ${currentResp.status}`);
-  const current = await currentResp.json() as OWCurrent;
+  if (!currentResp.ok) throw new Error(`OpenWeather error: ${currentResp.status}`);
+  const current = (await currentResp.json()) as OWCurrent;
 
-  const forecastResp = await fetch(`${OPENWEATHER_ENDPOINT}/forecast?${params}`);
-  let forecast: OWForecast = { list: [] };
-  if (forecastResp.ok) {
-    const fdata = await forecastResp.json() as OWForecast;
-    forecast = fdata;
+  let forecastList: WeatherData['forecast'] = [];
+  try {
+    const forecastResp = await fetch(`${OPENWEATHER_ENDPOINT}/forecast?${params}`);
+    if (forecastResp.ok) {
+      const fdata = (await forecastResp.json()) as OWForecast;
+      forecastList = (fdata.list || []).slice(0, 5).map((item, idx) => ({
+        timestamp: item.dt,
+        time: idx === 0 ? 'Now' : new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
+        temp: Math.round(item.main.temp),
+        rainProb: Math.round((item.pop || 0) * 100),
+      }));
+    }
+  } catch {
+    // Non-fatal, fallback to current
   }
 
-  return { ...current, forecast };
+  return {
+    location: locationName ? `${locationName} District` : 'Himalayan Region',
+    temperature: Math.round(current.main.temp),
+    condition: current.weather?.[0]?.description ? current.weather[0].description.replace(/\b\w/g, (c) => c.toUpperCase()) : 'Clear',
+    humidity: current.main.humidity,
+    windSpeed: Math.round(current.wind.speed * 3.6),
+    forecast: forecastList,
+  };
 }
 
-const OPENWEATHER_ENDPOINT = 'https://api.openweathermap.org/data/2.5';
+export async function fetchWeatherForCoordinates(lat: number, lon: number, locationName: string = ''): Promise<WeatherData> {
+  const cacheKey = `${lat.toFixed(3)},${lon.toFixed(3)}`;
+  const cached = weatherCache.get(cacheKey);
+  const now = Date.now();
 
-function mapOpenWeather(ow: OWCurrent & { forecast: OWForecast }): {
-  temperature: number;
-  condition: string;
-  humidity: number;
-  windSpeed: number;
-  forecast: Array<{ timestamp: number; time: string; temp: number; rainProb: number }>;
-} {
-  const forecast = ow.forecast.list
-    .slice(0, 4)
-    .map((item) => ({
-      timestamp: item.dt,
-      time: new Date(item.dt * 1000).toLocaleTimeString([], { hour: '2-digit', minute: '2-digit' }),
-      temp: Math.round(item.main.temp),
-      rainProb: Math.round((item.pop || 0) * 100),
-    }));
+  if (cached && now - cached.timestamp < WEATHER_CACHE_TTL_MS) {
+    return cached.data;
+  }
 
-  return {
-    temperature: Math.round(ow.main.temp),
-    condition: ow.weather[0].description,
-    humidity: ow.main.humidity,
-    windSpeed: Math.round(ow.wind.speed * 3.6),
-    forecast,
-  };
+  let result: WeatherData;
+  if (OPENWEATHER_KEY) {
+    try {
+      result = await fetchFromOpenWeather(lat, lon, locationName);
+      weatherCache.set(cacheKey, { data: result, timestamp: now });
+      return result;
+    } catch {
+      // Fall through to Open-Meteo on failure
+    }
+  }
+
+  try {
+    result = await fetchFromOpenMeteo(lat, lon, locationName);
+    weatherCache.set(cacheKey, { data: result, timestamp: now });
+    return result;
+  } catch {
+    // Ultimate fallback if both network queries fail
+    return {
+      location: locationName ? `${locationName} District` : 'Himalayan Region',
+      temperature: 15,
+      condition: 'Partly Cloudy',
+      humidity: 70,
+      windSpeed: 10,
+      forecast: [
+        { time: 'Now', temp: 15, rainProb: 10 },
+        { time: '3h', temp: 14, rainProb: 20 },
+        { time: '6h', temp: 12, rainProb: 35 },
+        { time: '9h', temp: 10, rainProb: 50 },
+        { time: '12h', temp: 9, rainProb: 40 },
+      ],
+    };
+  }
 }
 
 export async function fetchDashboardData(): Promise<DashboardData> {
@@ -306,13 +418,14 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     throw new Error('Backend unreachable');
   }
 
-  const [risksResult, sensorsResult, healthResult, weatherResult] = await Promise.allSettled([
+  // Fetch risks, sensors, health, and live weather for ALL settlements concurrently
+  const weatherPromises = zonesList.map((z) => fetchWeatherForCoordinates(z.latitude, z.longitude, z.name));
+
+  const [risksResult, sensorsResult, healthResult, ...weatherResults] = await Promise.allSettled([
     fetchBackendRisk(),
     fetchLatestSensors(),
     fetchBackendHealth(),
-    OPENWEATHER_KEY && zonesList.length > 0
-      ? fetchWeather(zonesList[0].latitude, zonesList[0].longitude)
-      : Promise.resolve(null),
+    ...weatherPromises,
   ]);
 
   const riskList: BackendRisk[] = risksResult.status === 'fulfilled' ? risksResult.value : [];
@@ -322,9 +435,12 @@ export async function fetchDashboardData(): Promise<DashboardData> {
   const riskByZone = new Map(riskList.map((r) => [r.zone_id, r]));
   const sensorByZone = new Map(sensorList.map((s) => [s.zone_id, s]));
 
-  const apiZones: ZoneData[] = zonesList.map((zone) => {
+  const apiZones: ZoneData[] = zonesList.map((zone, idx) => {
     const risk = riskByZone.get(zone.id);
     const sensor = sensorByZone.get(zone.id);
+    const weatherRes = weatherResults[idx];
+    const zoneWeather: WeatherData | undefined =
+      weatherRes && weatherRes.status === 'fulfilled' ? (weatherRes.value as WeatherData) : undefined;
 
     if (!risk) {
       return {
@@ -350,39 +466,30 @@ export async function fetchDashboardData(): Promise<DashboardData> {
           capacity: zone.population,
         },
         drishtiReasoning: 'No sensor data available yet.',
+        weather: zoneWeather,
       };
     }
 
-    return buildZoneFromBackend(zone, risk, sensor || null);
+    const builtZone = buildZoneFromBackend(zone, risk, sensor || null);
+    builtZone.weather = zoneWeather;
+    return builtZone;
   });
 
-  let weather: WeatherData = {
-    location: zonesList[0]?.name || 'Unknown Location',
-    temperature: 14,
-    condition: 'Partly Cloudy',
-    humidity: 78,
-    windSpeed: 12,
-    forecast: [],
-  };
-
-  if (weatherResult.status === 'fulfilled' && weatherResult.value) {
-    const ow = weatherResult.value;
-    const mapped = mapOpenWeather(ow);
-    weather = {
-      location: `${zonesList[0].name} District`,
-      temperature: mapped.temperature,
-      condition: mapped.condition,
-      humidity: mapped.humidity,
-      windSpeed: mapped.windSpeed,
-      forecast: mapped.forecast,
+  const primaryWeather: WeatherData =
+    apiZones[0]?.weather || {
+      location: zonesList[0]?.name ? `${zonesList[0].name} District` : 'Himalayan Region',
+      temperature: 15,
+      condition: 'Partly Cloudy',
+      humidity: 75,
+      windSpeed: 10,
+      forecast: [],
     };
-  }
 
   const selectedZone = apiZones[0]?.id || '';
   const hasAlert = apiZones.some((z) => z.rudraLevel === 'evacuate' || z.rudraLevel === 'warn');
 
   return {
-    weather,
+    weather: primaryWeather,
     zones: apiZones,
     selectedZone,
     isAlert: hasAlert,

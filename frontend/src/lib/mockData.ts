@@ -56,6 +56,7 @@ export interface ZoneData {
   evacuationPoints: EvacuationPoint[];
   nearestEvacuation: EvacuationPoint;
   drishtiReasoning: string;
+  weather?: WeatherData;
 }
 
 export interface WeatherData {

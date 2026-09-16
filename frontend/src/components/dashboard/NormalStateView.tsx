@@ -119,15 +119,15 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
 
                       <div className="relative grid grid-cols-2 md:grid-cols-4 gap-4 text-center mb-6">
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{weather.temperature}°C</div>
-                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60">{weather.condition}</div>
+                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{(z.weather || weather).temperature}°C</div>
+                          <div className="text-caption text-ink-900/60 dark:text-mist-50/60">{(z.weather || weather).condition}</div>
                         </div>
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{weather.humidity}%</div>
+                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{(z.weather || weather).humidity}%</div>
                           <div className="text-caption text-ink-900/60 dark:text-mist-50/60">Humidity</div>
                         </div>
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
-                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{weather.windSpeed} km/h</div>
+                          <div className="font-mono text-2xl font-medium text-ink-900 dark:text-mist-50">{(z.weather || weather).windSpeed} km/h</div>
                           <div className="text-caption text-ink-900/60 dark:text-mist-50/60">Wind</div>
                         </div>
                         <div className="p-4 bg-stone-100 dark:bg-forest-800 rounded-lg border border-stone-200 dark:border-moss-600">
@@ -220,12 +220,18 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
             </div>
 
             <Card>
-              <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50 mb-4">
-                12-Hour Forecast
-              </h3>
+              <div className="flex items-center justify-between mb-4">
+                <h3 className="font-display text-h3 text-ink-900 dark:text-mist-50">
+                  12-Hour Forecast {zone ? `— ${zone.name}` : ''}
+                </h3>
+                <span className="font-mono text-xs text-fern-400 bg-fern-500/10 px-2 py-0.5 rounded">
+                  LIVE
+                </span>
+              </div>
               <div className="flex items-end justify-between gap-2">
-                {weather.forecast.map((f) => (
+                {((zone?.weather?.forecast && zone.weather.forecast.length > 0 ? zone.weather.forecast : weather.forecast) || []).map((f) => (
                   <div key={f.timestamp ?? `${f.date ?? ''}-${f.time}`} className="flex flex-col items-center gap-2">
+                    <div className="font-mono text-xs text-ink-900/70 dark:text-mist-50/70 font-medium">{f.temp}°C</div>
                     <div className="font-mono text-sm text-ink-900 dark:text-mist-50/70">{f.rainProb}%</div>
                     <div
                       className={`w-8 rounded-t-sm transition-all duration-200 ease-out ${

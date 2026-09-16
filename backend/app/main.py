@@ -8,7 +8,7 @@ from starlette.middleware.sessions import SessionMiddleware
 
 from app.config import get_settings
 from app.database import get_db, init_db, session_scope
-from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, zones
+from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, weather, zones
 from app.schemas import HealthOut
 from app.seed_data import seed_database
 from app.simulation_engine import start_simulation
@@ -43,6 +43,7 @@ app.include_router(sensors.router)
 app.include_router(risk.router)
 app.include_router(alerts.router)
 app.include_router(simulation.router)
+app.include_router(weather.router)
 app.include_router(auth.router)
 app.include_router(auth_oauth.router)
 
