@@ -1,5 +1,5 @@
 import { useState, useEffect } from 'react';
-import { NormalStateView, AlertStateView } from '@/components/dashboard';
+import { NormalStateView, AlertStateView, SOSOperatorPanel } from '@/components/dashboard';
 import { RudraRing, ContourField } from '@/components/core';
 import { Button } from '@/components/ui';
 import { DashboardData, mockDashboardData, mockAlertData } from '@/lib/mockData';
@@ -18,27 +18,35 @@ export function DashboardPage() {
 
   useEffect(() => {
     let cancelled = false;
-    setLoading(true);
-    fetchDashboardData()
-      .then((fetched) => {
-        if (!cancelled) {
-          setData(fetched);
-          setLoading(false);
-        }
-      })
-      .catch((err) => {
-        if (!cancelled) {
-          setError(err instanceof Error ? err.message : 'Failed to fetch data');
-          setLoading(false);
-        }
-      });
-    return () => { cancelled = true; };
+    const refreshDashboard = () => {
+      fetchDashboardData()
+        .then((fetched) => {
+          if (!cancelled) {
+            setData(fetched);
+            setError(null);
+            setLoading(false);
+          }
+        })
+        .catch((err) => {
+          if (!cancelled) {
+            setError(err instanceof Error ? err.message : 'Failed to fetch data');
+            setLoading(false);
+          }
+        });
+    };
+    refreshDashboard();
+    const interval = window.setInterval(refreshDashboard, 5_000);
+    return () => {
+      cancelled = true;
+      window.clearInterval(interval);
+    };
   }, []);
 
   const showAlert = error ? manualMode === 'alert' : isAlertState;
   const { user } = useAuth();
   const firstName = user?.full_name?.split(/\s+/)[0] || user?.email?.split("@")[0];
-  const zone = (data ?? mockDashboardData).zones[0];
+  const dashboardData = data ?? mockDashboardData;
+  const zone = dashboardData.zones.find((candidate) => candidate.id === dashboardData.selectedZone) ?? dashboardData.zones[0];
   const weather = (data ?? mockDashboardData).weather;
   const displayData = showAlert ? (data ?? mockAlertData) : (data ?? mockDashboardData);
 
@@ -144,6 +152,8 @@ export function DashboardPage() {
       ) : (
         <NormalStateView data={displayData} />
       )}
+
+      <SOSOperatorPanel />
 
       <section className="section-py bg-forest-950 relative text-center" aria-hidden="true">
         <ContourField className="absolute inset-0" opacity={0.08} />

@@ -236,6 +236,54 @@ class SendSMSOut(BaseModel):
     to_number: str
 
 
+# ---------- SOS emergency requests ----------
+SOSStatus = Literal["Pending", "Acknowledged", "Rescue Dispatched", "Resolved", "False Alarm"]
+SOSSituation = Literal["Trapped", "Injured", "Medical Emergency", "Need Evacuation", "Other"]
+
+
+class SOSCreateIn(BaseModel):
+    phone_number: str = Field(..., min_length=7, max_length=24)
+    name: str = Field("", max_length=120)
+    people_count: int = Field(1, ge=1, le=500)
+    situation_type: SOSSituation
+    message: str = Field("", max_length=2000)
+    latitude: float | None = Field(None, ge=-90, le=90)
+    longitude: float | None = Field(None, ge=-180, le=180)
+    location_source: Literal["gps", "map_pin", "unavailable"] = "unavailable"
+
+
+class SOSStatusUpdateIn(BaseModel):
+    status: SOSStatus
+    note: str = Field("", max_length=1000)
+
+
+class SOSOut(BaseModel):
+    model_config = ConfigDict(from_attributes=True)
+    id: str
+    reference_id: str
+    phone_number: str
+    name: str
+    people_count: int
+    situation_type: str
+    message: str
+    latitude: float | None
+    longitude: float | None
+    location_source: str
+    nearest_zone_id: str | None
+    nearest_zone_name: str
+    district: str
+    risk_level: str
+    shelter_name: str
+    shelter_latitude: float | None
+    shelter_longitude: float | None
+    status: SOSStatus
+    status_note: str
+    updated_by: str
+    notification_channels: list[str]
+    created_at: dt.datetime
+    updated_at: dt.datetime
+
+
 
 # ---------- Health ----------
 class HealthOut(BaseModel):

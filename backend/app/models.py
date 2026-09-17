@@ -180,3 +180,35 @@ class AlertRecipient(Base):
 
     zone: Mapped["Zone | None"] = relationship()
 
+
+class SOSRequest(Base):
+    """A public emergency request; location remains optional when GPS fails."""
+    __tablename__ = "sos_requests"
+
+    id: Mapped[str] = mapped_column(String, primary_key=True, default=_uuid)
+    reference_id: Mapped[str] = mapped_column(String, unique=True, nullable=False, index=True)
+    phone_number: Mapped[str] = mapped_column(String, nullable=False, index=True)
+    name: Mapped[str] = mapped_column(String, default="")
+    people_count: Mapped[int] = mapped_column(Integer, default=1)
+    situation_type: Mapped[str] = mapped_column(String, nullable=False)
+    message: Mapped[str] = mapped_column(Text, default="")
+    latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    location_source: Mapped[str] = mapped_column(String, default="unavailable")
+    nearest_zone_id: Mapped[str | None] = mapped_column(ForeignKey("zones.id"), nullable=True, index=True)
+    nearest_zone_name: Mapped[str] = mapped_column(String, default="")
+    district: Mapped[str] = mapped_column(String, default="", index=True)
+    risk_level: Mapped[str] = mapped_column(String, default="")
+    shelter_name: Mapped[str] = mapped_column(String, default="")
+    shelter_latitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    shelter_longitude: Mapped[float | None] = mapped_column(Float, nullable=True)
+    status: Mapped[str] = mapped_column(String, default="Pending", index=True)
+    status_note: Mapped[str] = mapped_column(Text, default="")
+    updated_by: Mapped[str] = mapped_column(String, default="")
+    source_ip: Mapped[str] = mapped_column(String, default="", index=True)
+    notification_channels: Mapped[list] = mapped_column(JSON, default=list)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
+    updated_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now, onupdate=_now)
+
+    nearest_zone: Mapped["Zone | None"] = relationship()
+

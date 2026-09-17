@@ -1,4 +1,11 @@
 """Run manually after installing backend requirements to verify ML serving."""
+from pathlib import Path
+import sys
+
+# Allow both `python scripts/model_smoke.py` and `python -m scripts.model_smoke`
+# from the backend directory.
+sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
+
 from app.ml.predict import get_predictor
 
 

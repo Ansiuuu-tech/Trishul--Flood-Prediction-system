@@ -31,7 +31,13 @@ async def google_login(request: Request):
             detail="Google OAuth is not configured. Set GOOGLE_CLIENT_ID/GOOGLE_CLIENT_SECRET in .env.",
         )
     redirect_uri = request.url_for("google_callback")
-    return await oauth.google.authorize_redirect(request, redirect_uri)
+    try:
+        return await oauth.google.authorize_redirect(request, redirect_uri)
+    except Exception as exc:  # Provider discovery can fail when offline.
+        raise HTTPException(
+            status_code=503,
+            detail="Google sign-in is temporarily unavailable. Check this server's internet connection and try again.",
+        ) from exc
 
 
 @router.get("/google/callback", name="google_callback")
@@ -68,7 +74,13 @@ async def facebook_login(request: Request):
             detail="Facebook OAuth is not configured. Set FACEBOOK_CLIENT_ID/FACEBOOK_CLIENT_SECRET in .env.",
         )
     redirect_uri = request.url_for("facebook_callback")
-    return await oauth.facebook.authorize_redirect(request, redirect_uri)
+    try:
+        return await oauth.facebook.authorize_redirect(request, redirect_uri)
+    except Exception as exc:  # Keep provider connectivity failures out of a 500 page.
+        raise HTTPException(
+            status_code=503,
+            detail="Facebook sign-in is temporarily unavailable. Check this server's internet connection and try again.",
+        ) from exc
 
 
 @router.get("/facebook/callback", name="facebook_callback")

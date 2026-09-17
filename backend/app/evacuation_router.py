@@ -7,6 +7,7 @@ evacuation shelter. The road graph is fetched once and cached to disk.
 from __future__ import annotations
 
 import json
+import math
 import os
 import pickle
 from dataclasses import dataclass
@@ -124,6 +125,27 @@ def _nearest_node(G: nx.MultiDiGraph, lat: float, lng: float) -> int:
     return ox.distance.nearest_nodes(G, X=lng, Y=lat)
 
 
+def _straight_line_route(zone_data: dict[str, Any], shelter: dict[str, Any]) -> RouteResult:
+    """Return a local fallback when an OSM road graph cannot be obtained.
+
+    The line is deliberately labelled by the UI as a fallback, but it keeps
+    the destination pointer and evacuation guidance available offline.
+    """
+    lat1, lng1 = math.radians(zone_data["latitude"]), math.radians(zone_data["longitude"])
+    lat2, lng2 = math.radians(shelter["lat"]), math.radians(shelter["lng"])
+    a = math.sin((lat2 - lat1) / 2) ** 2 + math.cos(lat1) * math.cos(lat2) * math.sin((lng2 - lng1) / 2) ** 2
+    distance_m = 6_371_008.8 * 2 * math.asin(math.sqrt(a))
+    return RouteResult(
+        path=[(zone_data["latitude"], zone_data["longitude"]), (shelter["lat"], shelter["lng"])],
+        distance_m=distance_m,
+        duration_min=max(1, distance_m / 1_000 / 4 * 60),
+        shelter_id=shelter["id"], shelter_name=shelter["name"], shelter_lat=shelter["lat"], shelter_lng=shelter["lng"],
+        shelter_capacity=shelter["capacity"], shelter_type=shelter["shelter_type"], shelter_is_primary=shelter["is_primary"],
+        zone_id=zone_data["id"], zone_name=zone_data["name"], zone_lat=zone_data["latitude"], zone_lng=zone_data["longitude"],
+        zone_terrain_risk=zone_data["terrain_risk"],
+    )
+
+
 def _compute_risk_weight(G: nx.MultiDiGraph, high_risk_zones: list[dict[str, Any]]) -> nx.MultiDiGraph:
     """Copy the road graph and inflate costs for roads near active risk zones."""
     H = G.copy()
@@ -167,7 +189,7 @@ def compute_evacuation_route(zone_id: str, place_name: str) -> RouteResult | Non
             print(f"[evacuation_router] Zone '{zone_id}' not found")
             return None
 
-        shelters = db.query(EvacuationShelter).order_by(
+        shelters = db.query(EvacuationShelter).filter(EvacuationShelter.zone_id == zone_id).order_by(
             EvacuationShelter.is_primary.desc(), EvacuationShelter.capacity.desc()
         ).all()
         if not shelters:
@@ -198,7 +220,14 @@ def compute_evacuation_route(zone_id: str, place_name: str) -> RouteResult | Non
             for shelter in shelters
         ]
 
-    G = get_road_graph(place_name)
+    # A zone must never be routed to a centre in another district.
+    # When the road-network service is unavailable, return a direct fallback
+    # so responders can still see the correct local centre on the map.
+    fallback_shelter = shelter_candidates[0]
+    try:
+        G = get_road_graph(place_name)
+    except Exception:
+        return _straight_line_route(zone_data, fallback_shelter)
     H = _compute_risk_weight(G, high_risk_zones)
 
     zone_node = _nearest_node(H, zone_data["latitude"], zone_data["longitude"])
@@ -217,7 +246,7 @@ def compute_evacuation_route(zone_id: str, place_name: str) -> RouteResult | Non
             shelter_data = shelter
     if path is None or shelter_data is None:
         print(f"[evacuation_router] No route found from zone '{zone_id}' to any shelter")
-        return None
+        return _straight_line_route(zone_data, fallback_shelter)
 
     path_coords = [(H.nodes[n]["y"], H.nodes[n]["x"]) for n in path]
 

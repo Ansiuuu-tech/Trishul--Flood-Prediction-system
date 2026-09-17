@@ -3,22 +3,26 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui';
 import { RudraRing, RudraBanner, DamageScene, ContourField, LiveMap } from '@/components/core';
 import { DashboardData, mockAlertData } from '@/lib/mockData';
-import { fetchEvacuationRouteFromBackend, EvacuationRouteResponse } from '@/lib/api';
+import { EvacuationShelter, fetchEvacuationRouteFromBackend, fetchZoneShelters, EvacuationRouteResponse } from '@/lib/api';
 import { EvacuationCard } from './EvacuationCard';
 
 export function AlertStateView({ data = mockAlertData }: { data: DashboardData }) {
-  const zone = data.zones[0];
+  const zone = data.zones.find((candidate) => candidate.id === data.selectedZone) ?? data.zones[0];
   const weather = data.weather;
   const [routeData, setRouteData] = useState<EvacuationRouteResponse | null>(null);
+  const [shelters, setShelters] = useState<EvacuationShelter[]>([]);
   const [showEvacuationCard, setShowEvacuationCard] = useState(false);
 
   useEffect(() => {
-    fetchEvacuationRouteFromBackend(zone.id)
-      .then((route) => {
-        if (route) {
+    let cancelled = false;
+    Promise.all([fetchEvacuationRouteFromBackend(zone.id), fetchZoneShelters(zone.id).catch(() => [])])
+      .then(([route, centres]) => {
+        if (!cancelled) {
           setRouteData(route);
+          setShelters(centres);
         }
       });
+    return () => { cancelled = true; };
   }, [zone.id]);
 
   const timeToSafety = routeData
@@ -42,6 +46,13 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
         shelter_type: routeData.shelter.shelter_type,
       }
     : null;
+
+  // Keep the destination and an orientation line visible if road routing is unavailable.
+  const fallbackRoute = !routeData && shelters[0] ? {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[zone.coordinates[1], zone.coordinates[0]], [shelters[0].lng, shelters[0].lat]] },
+    properties: { distance_km: 0, duration_min: 0, shelter_name: shelters[0].name, shelter_type: shelters[0].shelter_type, shelter_capacity: shelters[0].capacity, zone_name: zone.name, zone_id: zone.id },
+  } : null;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
@@ -92,8 +103,9 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                         },
                       ]}
                       showUserLocation={true}
-                      evacuationRoute={routeData?.route_geojson || null}
+                      evacuationRoute={routeData?.route_geojson || fallbackRoute}
                       shelterLocation={shelterLocation}
+                      shelterLocations={shelters}
                     />
                   </div>
                 </div>

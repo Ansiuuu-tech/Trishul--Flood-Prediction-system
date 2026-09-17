@@ -275,7 +275,7 @@ export function HomePage() {
               <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                 <div>
                   <div className="overflow-hidden rounded-lg border border-moss-600" style={{ height: 420 }}>
-                    <LiveMap zoneMarkers={mapMarkers} historicalMarkers={historicalMarkers} zoom={7.5} showUserLocation={false} />
+                    <LiveMap zoneMarkers={mapMarkers} historicalMarkers={historicalMarkers} liveRiskByZone={live.latestRiskByZone} liveSensorByZone={live.latestSensorByZone} zoom={7.5} showUserLocation={false} />
                   </div>
                   <div className="mt-4 space-y-4">
                     <LiveTicker events={live.recentEvents} isDemo={isDemo} />
