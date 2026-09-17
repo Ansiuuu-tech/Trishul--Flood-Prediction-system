@@ -16,6 +16,7 @@ Trishul fuses rainfall, soil moisture, slope tilt, vibration, static terrain sus
 - [The eight modules](#the-eight-modules)
 - [Risk-fusion formula](#risk-fusion-formula)
 - [Simulation & scenarios](#simulation--scenarios)
+- [ML, evacuation & SOS](#ml-evacuation--sos)
 - [API overview](#api-overview)
 - [Running tests](#running-tests)
 - [Hardware (optional)](#hardware-optional)
@@ -47,11 +48,11 @@ This starts three services:
 | Backend API | http://localhost:8000 | FastAPI REST + Swagger UI at `/docs` |
 | PostgreSQL | localhost:5432 | user/pass/db: `trishul` / `trishul_dev` / `trishul` |
 
-The backend seeds all 8 zones and demo users automatically on first startup.
+The backend seeds 39 Uttarakhand monitoring zones, local evacuation centres, and demo users automatically on first startup.
 
 ### Local development (no Docker)
 
-**Backend** (Python 3.11+):
+**Backend** (Python 3.11):
 
 ```bash
 cd backend
@@ -225,6 +226,32 @@ See `backend/app/risk_engine.py` for the full implementation.
 
 ---
 
+## ML, evacuation & SOS
+
+### Hybrid ML safety signal
+
+The bundled XGBoost model uses rainfall, soil, terrain, seismic, historical-frequency, and seasonal features. Its result is **escalation-only**: a high-risk ML signal can raise a `Safe` or `Watch` rule-engine result to `Warning`; it never lowers an existing alert level.
+
+```bash
+cd backend
+python scripts/model_smoke.py
+```
+
+Use Python 3.11 with the pinned `xgboost==2.1.4` dependency set.
+
+### Evacuation centres and route map
+
+- Every seeded zone has a local designated shelter with capacity and type.
+- The map displays active-zone centres as green markers and fits the route and markers into view.
+- Routes are constrained to shelters belonging to the selected zone; a centre in another district is never selected.
+- OSMnx/NetworkX supplies risk-weighted road routes. If road-graph retrieval is unavailable, the API returns a direct fallback line so the destination remains visible.
+
+### SOS workflow
+
+`POST /api/sos` accepts a public emergency request, attaches nearby-zone/shelter context when GPS is available, broadcasts it over WebSocket, and queues configured responder notifications. The dashboard's operator panel supports authenticated status updates. Do not use real responder credentials while testing.
+
+---
+
 ## Simulation & scenarios
 
 A built-in asyncio simulation engine runs inside the FastAPI process by default (no external process needed). It generates sensor readings every `SIMULATION_INTERVAL_SECONDS` (default 2s) and pushes them through the same ingestion → risk → alert pipeline real hardware would use.
@@ -237,6 +264,8 @@ Four scenarios are available via the **Simulation Control** page or the REST API
 | `heavy_rain` | Elevated rainfall and soil moisture across all zones (reaches Watch/Warning) |
 | `rapid_escalation` | One target zone climbs deterministically Safe → Watch → Warning → Evacuate over ~7 ticks |
 | `sensor_failure` | Target zone's sensor goes offline / stops reporting |
+
+`rapid_escalation` and `sensor_failure` require an explicit `zone_id`; the API rejects a missing target rather than defaulting to another zone.
 
 ### Standalone simulator script
 
@@ -272,12 +301,13 @@ Interactive Swagger UI: http://localhost:8000/docs · ReDoc: http://localhost:80
 | Resource | Key endpoints |
 |----------|---------------|
 | **Health** | `GET /api/health` |
-| **Zones** | `GET /api/zones`, `GET /api/zones/{zone_id}`, `GET /api/zones/{zone_id}/history`, `GET /api/zones/{zone_id}/shelters`, `GET /api/zones/nearest-shelter/{zone_id}` |
+| **Zones** | `GET /api/zones`, `GET /api/zones/{zone_id}`, `GET /api/zones/{zone_id}/history`, `GET /api/zones/{zone_id}/shelters`, `GET /api/zones/{zone_id}/evacuation-route`, `GET /api/zones/nearest-shelter/{zone_id}` |
 | **Sensors** | `GET /api/sensors/latest`, `GET /api/sensors/{zone_id}`, `POST /api/sensors/reading`, `POST /api/sensors/bulk` |
 | **Risk** | `POST /api/risk/evaluate/{zone_id}`, `GET /api/risk/current`, `GET /api/risk/{zone_id}/history` |
 | **Simulation** | `POST /api/simulation/start`, `POST /api/simulation/stop`, `POST /api/simulation/reset`, `POST /api/simulation/scenario`, `GET /api/simulation/status` |
 | **Alerts** | `GET /api/alerts`, `POST /api/alerts/{alert_id}/acknowledge`, `POST /api/alerts/{alert_id}/resolve`, `POST /api/alerts/test` |
 | **Auth** | `POST /api/auth/demo-login`, `GET /api/auth/me`, `GET /api/auth/roles`, `GET /api/auth/google/login`, `GET /api/auth/google/callback`, `GET /api/auth/facebook/login`, `GET /api/auth/facebook/callback` |
+| **SOS** | `POST /api/sos`, `GET /api/sos` (operator), `PATCH /api/sos/{sos_id}/status` (operator) |
 | **WebSocket** | `WS /ws/live` — pushes `connected`, `sensor_reading`, `risk_update`, `alert`, `alert_updated` events |
 
 See [docs/API.md](docs/API.md) for full request/response examples with curl.
