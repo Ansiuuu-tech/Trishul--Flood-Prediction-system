@@ -3,42 +3,45 @@ import { Link } from 'react-router-dom';
 import { Card } from '@/components/ui';
 import { RudraRing, RudraBanner, DamageScene, ContourField, LiveMap } from '@/components/core';
 import { DashboardData, mockAlertData } from '@/lib/mockData';
-import { fetchEvacuationRoute } from '@/lib/api';
-import { Polyline } from 'react-leaflet';
+import { fetchEvacuationRouteFromBackend, EvacuationRouteResponse } from '@/lib/api';
 import { EvacuationCard } from './EvacuationCard';
 
 export function AlertStateView({ data = mockAlertData }: { data: DashboardData }) {
   const zone = data.zones[0];
   const weather = data.weather;
-  const [routeCoords, setRouteCoords] = useState<[number, number][] | null>(null);
-  const [routeDistance, setRouteDistance] = useState<number | null>(null);
-  const [routeDuration, setRouteDuration] = useState<number | null>(null);
+  const [routeData, setRouteData] = useState<EvacuationRouteResponse | null>(null);
   const [showEvacuationCard, setShowEvacuationCard] = useState(false);
 
   useEffect(() => {
-    const nearest = zone.nearestEvacuation;
-    if (!nearest) return;
-    const evacLat = zone.coordinates[0] + 0.005;
-    const evacLon = zone.coordinates[1] + 0.005;
-
-    fetchEvacuationRoute(zone.coordinates, [evacLat, evacLon])
+    fetchEvacuationRouteFromBackend(zone.id)
       .then((route) => {
         if (route) {
-          setRouteCoords(route.coordinates.map(([lon, lat]) => [lat, lon]));
-          setRouteDistance(route.distance);
-          setRouteDuration(route.duration);
+          setRouteData(route);
         }
       });
-  }, [zone]);
+  }, [zone.id]);
 
-  const polylinePositions = routeCoords || [
-    [zone.coordinates[0], zone.coordinates[1]],
-    [zone.coordinates[0] + 0.01, zone.coordinates[1] + 0.01],
-  ];
-
-  const timeToSafety = routeDuration
-    ? `~${Math.round(routeDuration / 60)} min`
+  const timeToSafety = routeData
+    ? `~${Math.round(routeData.duration_min)} min`
     : zone.timeToSafety;
+
+  // Convert route GeoJSON coordinates [lng, lat] to [lat, lng] for Leaflet Polyline
+  const polylinePositions = routeData?.route_geojson.geometry.coordinates
+    ? routeData.route_geojson.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number])
+    : [
+        [zone.coordinates[0], zone.coordinates[1]],
+        [zone.coordinates[0] + 0.01, zone.coordinates[1] + 0.01],
+      ];
+
+  const shelterLocation = routeData?.shelter
+    ? {
+        lat: routeData.shelter.lat,
+        lng: routeData.shelter.lng,
+        name: routeData.shelter.name,
+        capacity: routeData.shelter.capacity,
+        shelter_type: routeData.shelter.shelter_type,
+      }
+    : null;
 
   return (
     <div className="relative min-h-[calc(100vh-4rem)] overflow-hidden">
@@ -89,13 +92,9 @@ export function AlertStateView({ data = mockAlertData }: { data: DashboardData }
                         },
                       ]}
                       showUserLocation={true}
-                    >
-                      <Polyline
-                        positions={polylinePositions as [number, number][]}
-                        color="#B23A2E"
-                        weight={4}
-                      />
-                    </LiveMap>
+                      evacuationRoute={routeData?.route_geojson || null}
+                      shelterLocation={shelterLocation}
+                    />
                   </div>
                 </div>
 

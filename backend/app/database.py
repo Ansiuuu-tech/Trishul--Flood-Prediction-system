@@ -55,6 +55,9 @@ def init_db() -> None:
     # SQLite demo DB created during an earlier run). Safe to run repeatedly.
     _ensure_users_oauth_columns()
     _ensure_zones_columns()
+    _ensure_sensor_reading_columns()
+    _ensure_zone_ml_columns()
+    _ensure_risk_assessment_ml_columns()
 
 
 _OAUTH_USER_COLUMNS = {
@@ -117,3 +120,87 @@ def _ensure_users_oauth_columns() -> None:
                 # Non-fatal: best-effort migration. The SQL migration files
                 # remain available for a clean provisioning run.
                 pass
+
+
+_SENSOR_READING_COLUMNS = {
+    "rainfall_mm_3d": "REAL DEFAULT 0.0",
+    "rainfall_mm_7d": "REAL DEFAULT 0.0",
+}
+
+
+def _ensure_sensor_reading_columns() -> None:
+    """Add rainfall_mm_3d/7d columns to sensor_readings if missing."""
+    try:
+        inspector = inspect(engine)
+        table_names = inspector.get_table_names()
+    except Exception:
+        return
+
+    if "sensor_readings" not in table_names:
+        return
+
+    existing = {c["name"] for c in inspector.get_columns("sensor_readings")}
+    missing = [(n, t) for n, t in _SENSOR_READING_COLUMNS.items() if n not in existing]
+    if not missing:
+        return
+
+    with engine.begin() as conn:
+        for name, ctype in missing:
+            try:
+                conn.exec_driver_sql(f'ALTER TABLE sensor_readings ADD COLUMN "{name}" {ctype}')
+            except Exception:
+                pass
+
+
+_ZONE_ML_COLUMNS = {
+    "seismic_zone": "TEXT",
+    "quake_count_100km_alltime": "INTEGER DEFAULT 0",
+    "historical_flood_freq": "REAL DEFAULT 0.0",
+    "historical_landslide_freq": "REAL DEFAULT 0.0",
+}
+
+
+def _ensure_zone_ml_columns() -> None:
+    """Add ML feature columns to zones table if missing."""
+    try:
+        inspector = inspect(engine)
+        table_names = inspector.get_table_names()
+    except Exception:
+        return
+
+    if "zones" not in table_names:
+        return
+
+    existing = {c["name"] for c in inspector.get_columns("zones")}
+    missing = [(n, t) for n, t in _ZONE_ML_COLUMNS.items() if n not in existing]
+    if not missing:
+        return
+
+    with engine.begin() as conn:
+        for name, ctype in missing:
+            try:
+                conn.exec_driver_sql(f'ALTER TABLE zones ADD COLUMN "{name}" {ctype}')
+            except Exception:
+                pass
+
+
+def _ensure_risk_assessment_ml_columns() -> None:
+    """Add ml_probability column to risk_assessments if missing."""
+    try:
+        inspector = inspect(engine)
+        table_names = inspector.get_table_names()
+    except Exception:
+        return
+
+    if "risk_assessments" not in table_names:
+        return
+
+    existing = {c["name"] for c in inspector.get_columns("risk_assessments")}
+    if "ml_probability" in existing:
+        return
+
+    with engine.begin() as conn:
+        try:
+            conn.exec_driver_sql('ALTER TABLE risk_assessments ADD COLUMN "ml_probability" REAL')
+        except Exception:
+            pass

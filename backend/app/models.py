@@ -38,6 +38,10 @@ class Zone(Base):
     safe_location: Mapped[str] = mapped_column(String, default="")
     evacuation_route: Mapped[str] = mapped_column(Text, default="")
     is_fictional: Mapped[bool] = mapped_column(Boolean, default=True)
+    seismic_zone: Mapped[str | None] = mapped_column(String, nullable=True)
+    quake_count_100km_alltime: Mapped[int] = mapped_column(Integer, default=0)
+    historical_flood_freq: Mapped[float] = mapped_column(Float, default=0.0)
+    historical_landslide_freq: Mapped[float] = mapped_column(Float, default=0.0)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
 
     sensor_readings: Mapped[list["SensorReading"]] = relationship(back_populates="zone")
@@ -55,6 +59,8 @@ class SensorReading(Base):
     rainfall_mm_1h: Mapped[float] = mapped_column(Float, default=0.0)
     rainfall_mm_3h: Mapped[float] = mapped_column(Float, default=0.0)
     rainfall_mm_24h: Mapped[float] = mapped_column(Float, default=0.0)
+    rainfall_mm_3d: Mapped[float] = mapped_column(Float, default=0.0)   # ← ADD
+    rainfall_mm_7d: Mapped[float] = mapped_column(Float, default=0.0)   # ← ADD
     soil_moisture_pct: Mapped[float] = mapped_column(Float, default=0.0)
     tilt_degrees: Mapped[float] = mapped_column(Float, default=0.0)
     tilt_change_rate: Mapped[float] = mapped_column(Float, default=0.0)  # deg/hr
@@ -99,6 +105,7 @@ class RiskAssessment(Base):
     estimated_lead_time_minutes: Mapped[int] = mapped_column(Integer, default=0)
     data_quality_warning: Mapped[str] = mapped_column(String, default="")
     model_version: Mapped[str] = mapped_column(String, default="risk-fusion-v1.0.0-demo")
+    ml_probability: Mapped[float | None] = mapped_column(Float, nullable=True)
     created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now, index=True)
 
     zone: Mapped["Zone"] = relationship(back_populates="risk_assessments")
@@ -152,6 +159,9 @@ class User(Base):
     is_demo_account: Mapped[bool] = mapped_column(Boolean, default=True)
     oauth_provider: Mapped[str | None] = mapped_column(String, nullable=True)  # google|facebook
     oauth_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    avatar_url: Mapped[str | None] = mapped_column(String, nullable=True)
+    home_zone_id: Mapped[str | None] = mapped_column(String, nullable=True)
+    created_at: Mapped[dt.datetime] = mapped_column(DateTime(timezone=True), default=_now)
     __table_args__ = (UniqueConstraint("oauth_provider", "oauth_id", name="uq_oauth_identity"),)
 
 

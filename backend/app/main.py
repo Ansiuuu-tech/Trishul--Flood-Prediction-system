@@ -15,6 +15,7 @@ from app.seed_data import seed_database
 from app.simulation_engine import start_simulation
 from app.weather_poller import start_weather_poller, stop_weather_poller
 from app.ws_manager import manager
+from app.ml.predict import get_predictor
 
 settings = get_settings()
 
@@ -64,6 +65,8 @@ async def on_startup() -> None:
     init_db()
     with session_scope() as db:
         seed_database(db)
+    get_predictor()
+    print("[startup] Flood risk model loaded")
     if settings.DATA_MODE == "live":
         start_weather_poller()
     else:
@@ -87,6 +90,7 @@ def health():
         email_configured=settings.email_configured,
         sms_configured=settings.twilio_configured,
     )
+
 
 
 @app.websocket("/ws/live")

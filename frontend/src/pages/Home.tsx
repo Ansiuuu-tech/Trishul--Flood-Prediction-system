@@ -1,7 +1,12 @@
+import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { ContourField, DamageScene } from '@/components/core';
+import { ContourField, DamageScene, LiveMap } from '@/components/core';
+import { LiveIndicator } from '@/components/dashboard';
 import { KAILASH_BG } from '@/components/core/FeaturePage';
+import { LiveTicker, LiveZoneStrip, TopRiskCallout } from '@/components/home';
+import { fetchAllHistoricalEvents, fetchCurrentRisk, fetchHealth, fetchLatestSensors, fetchZones, type BackendSensor, type BackendZone, type RiskAssessment } from '@/lib/api';
+import { useLiveFeed } from '@/hooks/useLiveFeed';
 
 const IMD_RADAR_URL = 'https://mausam.imd.gov.in/Radar/MOSAIC/Converted/mosaic.gif';
 const IMD_SATELLITE_URL = 'https://mausam.imd.gov.in/Satellite/3Dasiasec_ir1.jpg';
@@ -14,7 +19,46 @@ const stats = [
   { value: '₹6,972 crore', label: 'Average annual economic loss' },
 ];
 
+const levelToRudra = (level: string): 'safe' | 'watch' | 'warn' | 'evacuate' => ({ Safe: 'safe', Watch: 'watch', Warning: 'warn', Evacuate: 'evacuate' }[level] || 'safe') as 'safe' | 'watch' | 'warn' | 'evacuate';
+
+function LeadTime({ minutes }: { minutes: number }) {
+  const [remaining, setRemaining] = useState(minutes * 60);
+  useEffect(() => { setRemaining(minutes * 60); const timer = setInterval(() => setRemaining((s) => Math.max(0, s - 1)), 1000); return () => clearInterval(timer); }, [minutes]);
+  return <span className="font-mono text-caption text-rudra-warn">Lead time {String(Math.floor(remaining / 60)).padStart(2, '0')}:{String(remaining % 60).padStart(2, '0')}</span>;
+}
+
 export function HomePage() {
+  const live = useLiveFeed();
+  const [zones, setZones] = useState<BackendZone[]>([]);
+  const [risks, setRisks] = useState<Record<string, RiskAssessment>>({});
+  const [sensors, setSensors] = useState<Record<string, BackendSensor>>({});
+  const [historicalEvents, setHistoricalEvents] = useState<Awaited<ReturnType<typeof fetchAllHistoricalEvents>>>([]);
+  const [isDemo, setIsDemo] = useState<boolean | null>(null);
+
+  useEffect(() => {
+    let cancelled = false;
+    Promise.allSettled([fetchZones(), fetchCurrentRisk(), fetchLatestSensors(), fetchAllHistoricalEvents(), fetchHealth()]).then(([zoneResult, riskResult, sensorResult, eventResult, healthResult]) => {
+      if (cancelled) return;
+      if (zoneResult.status === 'fulfilled') setZones(zoneResult.value);
+      if (riskResult.status === 'fulfilled') setRisks(Object.fromEntries(riskResult.value.map((risk) => [risk.zone_id, risk])));
+      if (sensorResult.status === 'fulfilled') setSensors(Object.fromEntries(sensorResult.value.map((sensor) => [sensor.zone_id, sensor])));
+      if (eventResult.status === 'fulfilled') setHistoricalEvents(eventResult.value);
+      if (healthResult.status === 'fulfilled') setIsDemo(healthResult.value?.demo_mode ?? null);
+    });
+    return () => { cancelled = true; };
+  }, []);
+
+  const mapMarkers = useMemo(() => zones.map((zone) => {
+    const update = live.latestRiskByZone[zone.id];
+    const risk = update || risks[zone.id];
+    return { id: zone.id, name: zone.name, district: zone.district, lat: zone.latitude, lng: zone.longitude, rudraLevel: levelToRudra(risk?.level || 'Safe'), shaktiScore: risk?.score ?? 0 };
+  }), [zones, risks, live.latestRiskByZone]);
+  const historicalMarkers = useMemo(() => historicalEvents.flatMap((event) => {
+    const zone = zones.find((candidate) => candidate.id === event.zone_id);
+    return zone ? [{ id: event.id, lat: zone.latitude, lng: zone.longitude, label: event.event_type, date: event.event_date, severity: event.severity }] : [];
+  }), [historicalEvents, zones]);
+  const effectiveRisks = useMemo(() => zones.map((zone) => live.latestRiskByZone[zone.id] || risks[zone.id]).filter(Boolean), [zones, risks, live.latestRiskByZone]);
+  const topRisk = useMemo(() => [...effectiveRisks].sort((a, b) => b.score - a.score)[0], [effectiveRisks]);
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
       <div>
@@ -50,6 +94,14 @@ export function HomePage() {
           </div>
 
 
+        </section>
+
+        <section className="bg-forest-950 pb-12" aria-label="Current highest risk">
+          <div className="container-main">
+            {topRisk ? <div className="max-w-3xl"><TopRiskCallout zoneName={zones.find((zone) => zone.id === topRisk.zone_id)?.name || topRisk.zone_id} score={topRisk.score} level={topRisk.level} reason={topRisk.reasons?.[0]} recommendedAction={topRisk.recommended_action} />
+              {(topRisk.level === 'Warning' || topRisk.level === 'Evacuate') && topRisk.estimated_lead_time_minutes > 0 ? <div className="mt-3"><LeadTime minutes={topRisk.estimated_lead_time_minutes} /></div> : null}
+            </div> : <div className="max-w-3xl rounded-card border border-moss-600 bg-forest-800 p-6 text-mist-50/65">Loading current zone status…</div>}
+          </div>
         </section>
 
         {/* Three Prongs Section */}
@@ -191,6 +243,22 @@ export function HomePage() {
           </div>
         </section>
 
+        <section className="section-py bg-mist-50 dark:bg-forest-900" aria-labelledby="model-trust-heading">
+          <div className="container-main grid gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-center">
+            <div>
+              <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-3">Model trust</p>
+              <h2 id="model-trust-heading" className="font-display text-h2 text-ink-900 dark:text-mist-50 mb-4">Validation that respects time</h2>
+              {/* Update shap_summary.png + the ROC-AUC line below whenever train.py is re-run. */}
+              <p className="text-body text-ink-900/70 dark:text-mist-50/70">ROC-AUC 0.9867 on a strict time-based split: trained on 2013–2022 and tested on 2023–2025, never on shuffled records.</p>
+              <p className="mt-3 text-body text-ink-900/70 dark:text-mist-50/70">Top predictors (SHAP): 3-day rainfall accumulation and soil moisture.</p>
+            </div>
+            <div className="rounded-card border border-moss-600 bg-white/40 p-4 dark:bg-forest-800">
+              <img src="/images/shap_summary.png" alt="SHAP feature-importance summary for the deployed risk model" className="w-full" onError={(event) => { event.currentTarget.style.display = 'none'; }} />
+              <p className="text-caption text-ink-900/50 dark:text-mist-50/50">Feature-importance artifact is shown when the training output is included in the deployment.</p>
+            </div>
+          </div>
+        </section>
+
         {/* System in Action - Dark Section */}
         <section className="section-py bg-forest-950 relative overflow-hidden" aria-labelledby="system-action-heading">
           <ContourField className="absolute inset-0" opacity={0.08} drift={true} />
@@ -201,23 +269,18 @@ export function HomePage() {
                 <h2 id="system-action-heading" className="font-display text-h2 text-mist-50">
                   Risk status — live
                 </h2>
-                <span className="inline-flex items-center gap-2 self-start rounded-pill border border-fern-400/30 bg-fern-400/10 px-3 py-1.5 font-mono text-caption text-fern-400" role="status" aria-live="polite">
-                  <span className="h-2 w-2 rounded-full bg-fern-400 animate-pulse" aria-hidden="true" />
-                  Updated recently
-                </span>
+                <LiveIndicator resetKey={Object.keys(live.latestRiskByZone).length ? JSON.stringify(live.latestRiskByZone) : 'init'} label={live.connected ? 'Live' : 'Reconnecting'} />
               </div>
 
               <div className="grid lg:grid-cols-[1.1fr_0.9fr] gap-8 items-center">
                 <div>
-                  <svg className="w-full h-auto rounded-lg border border-moss-600 bg-forest-950 p-4" viewBox="0 0 420 150" fill="none" role="img" aria-label="Basin status map showing low, moderate, high, and extreme risk points">
-                    <path d="M10 20 C 60 40, 90 10, 140 35 C 190 60, 220 30, 270 55 C 320 80, 350 60, 410 90" stroke="#3E5A76" strokeWidth="2" fill="none" />
-                    <path d="M30 90 C 80 100, 120 80, 170 100 C 220 120, 260 95, 320 115 C 360 128, 380 118, 405 130" stroke="#4A6E8C" strokeWidth="2" fill="none" />
-                    <circle cx="140" cy="35" r="5" fill="#7FD79A" />
-                    <circle cx="270" cy="55" r="5" fill="#DFA23B" />
-                    <circle cx="170" cy="100" r="5" fill="#E38377" />
-                    <circle cx="320" cy="115" r="5" fill="#7FD79A" />
-                    <circle cx="60" cy="40" r="5" fill="#7FD79A" />
-                  </svg>
+                  <div className="overflow-hidden rounded-lg border border-moss-600" style={{ height: 420 }}>
+                    <LiveMap zoneMarkers={mapMarkers} historicalMarkers={historicalMarkers} zoom={7.5} showUserLocation={false} />
+                  </div>
+                  <div className="mt-4 space-y-4">
+                    <LiveTicker events={live.recentEvents} isDemo={isDemo} />
+                    <LiveZoneStrip zones={zones} sensors={sensors} liveSensors={live.latestSensorByZone} />
+                  </div>
                   <p className="mt-3 font-mono text-caption text-mist-50/45">Basin signal field · Uttarakhand · live synthesis</p>
                 </div>
 
@@ -340,6 +403,10 @@ It turns that prediction into a 20+ minute head start and an alert that actually
                   </div>
                 </div>
               ))}
+            </div>
+            <div className="mt-10 grid grid-cols-2 gap-4 border-t border-moss-600 pt-6 text-center sm:max-w-xl sm:mx-auto">
+              <div><p className="font-mono text-xl text-mist-50">{zones.length || '—'}</p><p className="text-caption text-mist-50/60">villages monitored</p></div>
+              <div><p className="font-mono text-xl text-mist-50">{zones.length ? Object.values(sensors).filter((sensor) => sensor.is_online).length : '—'}</p><p className="text-caption text-mist-50/60">sensors reporting now</p></div>
             </div>
           </div>
         </section>

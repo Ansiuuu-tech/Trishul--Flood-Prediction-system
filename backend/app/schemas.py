@@ -52,6 +52,8 @@ class SensorReadingIn(BaseModel):
     rainfall_mm_1h: float = Field(ge=0, le=500)
     rainfall_mm_3h: float = Field(ge=0, le=1000)
     rainfall_mm_24h: float = Field(ge=0, le=2000)
+    rainfall_mm_3d: float = Field(ge=0, le=3000, default=0.0)   # ← ADD
+    rainfall_mm_7d: float = Field(ge=0, le=5000, default=0.0)   # ← ADD
     soil_moisture_pct: float = Field(ge=0, le=100)
     tilt_degrees: float = Field(ge=-90, le=90)
     tilt_change_rate: float = Field(ge=-45, le=45, default=0.0)
@@ -73,6 +75,8 @@ class SensorReadingOut(BaseModel):
     rainfall_mm_1h: float
     rainfall_mm_3h: float
     rainfall_mm_24h: float
+    rainfall_mm_3d: float = Field(ge=0, le=3000, default=0.0)   # ← ADD
+    rainfall_mm_7d: float = Field(ge=0, le=5000, default=0.0)   # ← ADD
     soil_moisture_pct: float
     tilt_degrees: float
     tilt_change_rate: float
@@ -102,6 +106,7 @@ class RiskAssessmentOut(BaseModel):
     estimated_lead_time_minutes: int
     data_quality_warning: str
     model_version: str
+    ml_probability: float | None = None
     created_at: dt.datetime
 
 

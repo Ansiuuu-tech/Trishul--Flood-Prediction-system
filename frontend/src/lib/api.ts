@@ -74,6 +74,16 @@ export interface BackendSensor {
   recorded_at: string;
 }
 
+export interface BackendHistoricalEvent {
+  id: string;
+  zone_id: string;
+  event_type: string;
+  event_date: string;
+  severity: string;
+  fatalities: number;
+  description: string;
+}
+
 interface OWCurrent {
   main: { temp: number; humidity: number };
   wind: { speed: number };
@@ -538,6 +548,16 @@ export async function fetchCurrentRisk(): Promise<RiskAssessment[]> {
   return resp.json();
 }
 
+export async function fetchAllHistoricalEvents(): Promise<BackendHistoricalEvent[]> {
+  const resp = await fetch(`${API_URL}/api/zones/all/historical-events`);
+  if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+  return resp.json();
+}
+
+export async function fetchHealth(): Promise<{ status: string; demo_mode: boolean } | null> {
+  return fetchBackendHealth();
+}
+
 export async function fetchSimulationStatus(): Promise<SimulationStatus> {
   const resp = await fetch(`${API_URL}/api/simulation/status`);
   if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
@@ -583,6 +603,38 @@ export interface ORSRoute {
   duration: number;
 }
 
+export interface EvacuationRouteResponse {
+  zone_id: string;
+  zone_name: string;
+  shelter: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    capacity: number;
+    shelter_type: string;
+    is_primary: boolean;
+  };
+  route_geojson: {
+    type: string;
+    geometry: {
+      type: string;
+      coordinates: number[][];
+    };
+    properties: {
+      distance_km: number;
+      duration_min: number;
+      shelter_name: string;
+      shelter_type: string;
+      shelter_capacity: number;
+      zone_name: string;
+      zone_id: string;
+    };
+  };
+  distance_km: number;
+  duration_min: number;
+}
+
 export async function fetchEvacuationRoute(
   from: [number, number],
   to: [number, number],
@@ -612,6 +664,19 @@ export async function fetchEvacuationRoute(
     };
   } catch (err) {
     console.warn('ORS routing failed:', err);
+    return null;
+  }
+}
+
+export async function fetchEvacuationRouteFromBackend(zoneId: string): Promise<EvacuationRouteResponse | null> {
+  try {
+    const resp = await fetch(`${API_URL}/api/zones/${zoneId}/evacuation-route`);
+    if (!resp.ok) {
+      throw new Error(`Backend error: ${resp.status}`);
+    }
+    return resp.json();
+  } catch (err) {
+    console.warn('Backend evacuation route failed:', err);
     return null;
   }
 }

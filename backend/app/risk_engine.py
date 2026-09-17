@@ -20,6 +20,7 @@ import datetime as dt
 from dataclasses import dataclass, field
 
 from app.config import get_settings
+from app.ml.predict import get_predictor
 
 settings = get_settings()
 
@@ -230,3 +231,37 @@ def evaluate_risk(inputs: RiskInputs) -> RiskResult:
         estimated_lead_time_minutes=LEAD_TIME_BY_LEVEL[final_level],
         data_quality_warning=dq_warning,
     )
+
+
+def compute_hybrid_risk(
+    zone_reading: dict,
+    rule_based_level: str,
+    rule_based_score: float,
+) -> dict:
+    """Combine the fixed ML model with the explainable rule-engine result.
+
+    The ML signal is intentionally escalation-only: a high-risk prediction can
+    raise Safe/Watch to Warning, but never lowers an existing safety level.
+    """
+    if rule_based_level not in LEVEL_ORDER:
+        raise ValueError(f"Unknown rule-based risk level: {rule_based_level}")
+
+    ml_result = get_predictor().predict_risk_level(zone_reading)
+    final_level = rule_based_level
+    if (
+        ml_result["ml_flag"] == "HIGH_RISK"
+        and LEVEL_ORDER.index(rule_based_level) < LEVEL_ORDER.index("Warning")
+    ):
+        final_level = "Warning"
+
+    return {
+        "rule_based_level": rule_based_level,
+        "rule_based_score": rule_based_score,
+        "ml_probability": ml_result["ml_probability"],
+        "ml_flag": ml_result["ml_flag"],
+        "final_level": final_level,
+        "explanation": (
+            f"Rule engine: {rule_based_level} (score {rule_based_score}). "
+            f"ML model confidence: {ml_result['ml_probability'] * 100:.1f}%."
+        ),
+    }

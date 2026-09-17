@@ -7,6 +7,7 @@ import {
   Marker,
   CircleMarker,
   Popup,
+  Polyline,
   useMap,
 } from 'react-leaflet';
 import L from 'leaflet';
@@ -33,8 +34,28 @@ export type LiveMapProps = {
     rudraLevel: RudraLevel;
     shaktiScore?: number;
   }[];
+  /** Documented historical events, usually joined to their parent zone coordinates. */
+  historicalMarkers?: { id: string; lat: number; lng: number; label: string; date: string; severity?: string }[];
   showUserLocation?: boolean;
   onZoneSelect?: (zoneId: string) => void;
+  /** Evacuation route GeoJSON from API */
+  evacuationRoute?: {
+    geometry: {
+      type: string;
+      coordinates: number[][];
+    };
+    properties: {
+      distance_km: number;
+      duration_min: number;
+      shelter_name: string;
+      shelter_type: string;
+      shelter_capacity: number;
+      zone_name: string;
+      zone_id: string;
+    };
+  } | null;
+  /** Shelter location for marker */
+  shelterLocation?: { lat: number; lng: number; name: string; capacity: number; shelter_type: string } | null;
   children?: ReactNode;
 };
 
@@ -157,6 +178,34 @@ function ZoneMarkers({
   );
 }
 
+function HistoricalMarkers({ markers }: { markers: LiveMapProps['historicalMarkers'] }) {
+  if (!markers) return null;
+  return (
+    <>
+      {markers.map((event) => (
+        <CircleMarker
+          key={event.id}
+          center={[event.lat, event.lng]}
+          radius={5}
+          fillColor="#8a8a8a"
+          color="#ffffff"
+          weight={1}
+          fillOpacity={0.8}
+        >
+          <Popup>
+            <div style={{ fontFamily: 'General Sans, sans-serif' }}>
+              <strong>Historical event</strong><br />
+              {event.label}<br />
+              {new Date(event.date).toLocaleDateString()}
+              {event.severity ? <><br />Severity: {event.severity}</> : null}
+            </div>
+          </Popup>
+        </CircleMarker>
+      ))}
+    </>
+  );
+}
+
 function WeatherOverlay({ layer }: { layer: string | null }) {
   const apiKey = import.meta.env.VITE_OPENWEATHER_KEY;
   if (!layer || !apiKey) return null;
@@ -242,6 +291,88 @@ function GlacierOverlay() {
   );
 }
 
+function EvacuationRoute({
+  route,
+}: {
+  route: LiveMapProps['evacuationRoute'];
+}) {
+  if (!route || !route.geometry?.coordinates?.length) return null;
+
+  // Convert [lng, lat] to [lat, lng] for Leaflet
+  const positions = route.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+
+  const props = route.properties;
+  const popupContent = (
+    <div style={{ fontFamily: 'General Sans, sans-serif', minWidth: 200 }}>
+      <strong style={{ color: rudraColors.evacuate }}>Evacuation Route</strong>
+      <br />
+      To: {props.shelter_name} ({props.shelter_type})
+      <br />
+      Capacity: {props.shelter_capacity} people
+      <br />
+      Distance: {props.distance_km.toFixed(1)} km
+      <br />
+      Est. Time: {props.duration_min.toFixed(1)} min
+    </div>
+  );
+
+  return (
+    <Polyline
+      positions={positions}
+      color={rudraColors.evacuate}
+      weight={4}
+      opacity={0.9}
+      dashArray="10, 5"
+      lineCap="round"
+      lineJoin="round"
+    >
+      <Popup>{popupContent}</Popup>
+    </Polyline>
+  );
+}
+
+function ShelterMarker({
+  shelter,
+}: {
+  shelter: LiveMapProps['shelterLocation'];
+}) {
+  if (!shelter) return null;
+
+  return (
+    <Marker
+      position={[shelter.lat, shelter.lng]}
+      icon={L.divIcon({
+        className: 'shelter-marker',
+        html: `
+          <div style="
+            width: 28px; height: 28px; border-radius: 50%;
+            background-color: #10B981;
+            border: 4px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; color: white;
+          ">
+            🏠
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36],
+      })}
+    >
+      <Popup>
+        <div style={{ fontFamily: 'General Sans, sans-serif' }}>
+          <strong style={{ color: '#10B981' }}>{shelter.name}</strong>
+          <br />
+          Type: {shelter.shelter_type.replace('_', ' ')}
+          <br />
+          Capacity: {shelter.capacity} people
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
 export function LiveMap({
   center = DEFAULT_CENTER,
   zoom = DEFAULT_ZOOM,
@@ -249,8 +380,11 @@ export function LiveMap({
   showRainRadar = true,
   showGlaciers = true,
   zoneMarkers = [],
+  historicalMarkers = [],
   showUserLocation = true,
   onZoneSelect,
+  evacuationRoute = null,
+  shelterLocation = null,
   children,
 }: LiveMapProps) {
   return (
@@ -320,6 +454,10 @@ export function LiveMap({
       </LayersControl>
 
       <ZoneMarkers zones={zoneMarkers} onZoneSelect={onZoneSelect} />
+      <HistoricalMarkers markers={historicalMarkers} />
+
+      {evacuationRoute && <EvacuationRoute route={evacuationRoute} />}
+      {shelterLocation && <ShelterMarker shelter={shelterLocation} />}
 
       {showUserLocation && <UserLocationMarker />}
 

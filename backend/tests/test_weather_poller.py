@@ -23,7 +23,7 @@ def test_rainfall_uses_only_observed_hours() -> None:
     rainfall = _derive_rainfall({"time": times, "precipitation": precipitation})
 
     # The 25th value belongs to the next (forecast) hour and is excluded.
-    assert rainfall == (24.0, 69.0, 300.0)
+    assert rainfall == (24.0, 69.0, 300.0, 300.0, 300.0)
 
 
 def test_soil_moisture_uses_latest_observed_value() -> None:

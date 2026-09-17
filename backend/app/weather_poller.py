@@ -37,7 +37,7 @@ async def _fetch_zone_weather(client: httpx.AsyncClient, zone: Zone) -> dict[str
         "latitude": zone.latitude,
         "longitude": zone.longitude,
         "hourly": "precipitation,soil_moisture_0_to_7cm",
-        "past_days": 1,
+        "past_days": 7,
         "forecast_days": 1,
         "timezone": "UTC",
     }
@@ -78,25 +78,26 @@ def _numeric_window(values: list[Any], start: int, end: int) -> float:
     return sum(float(value) for value in values[start:end] if isinstance(value, (int, float)))
 
 
-def _derive_rainfall(hourly: dict[str, Any]) -> tuple[float, float, float]:
-    """Convert Open-Meteo hourly precipitation into 1h, 3h, and 24h totals."""
+def _derive_rainfall(hourly: dict[str, Any]) -> tuple[float, float, float, float, float]:
+    """Convert Open-Meteo hourly precipitation into 1h, 3h, 24h, 3d, 7d totals."""
     precipitation = hourly.get("precipitation", [])
     times = hourly.get("time", [])
     if not isinstance(precipitation, list) or not isinstance(times, list):
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0, 0.0
 
     index = _hour_index_at_or_before_now(times)
     if index is None:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0, 0.0
 
-    # Values are hourly totals; include the most recent observed hour.
     end = min(index + 1, len(precipitation))
     if end <= 0:
-        return 0.0, 0.0, 0.0
+        return 0.0, 0.0, 0.0, 0.0, 0.0
     return (
         round(_numeric_window(precipitation, max(0, end - 1), end), 2),
         round(_numeric_window(precipitation, max(0, end - 3), end), 2),
         round(_numeric_window(precipitation, max(0, end - 24), end), 2),
+        round(_numeric_window(precipitation, max(0, end - 72), end), 2),    # 3 days = 72 hours
+        round(_numeric_window(precipitation, max(0, end - 168), end), 2),   # 7 days = 168 hours
     )
 
 
@@ -127,7 +128,7 @@ async def _poll_once(db: Session, client: httpx.AsyncClient) -> None:
         if not isinstance(hourly, dict):
             print(f"[weather_poller] invalid hourly data for {zone.id}")
             continue
-        rainfall_1h, rainfall_3h, rainfall_24h = _derive_rainfall(hourly)
+        rainfall_1h, rainfall_3h, rainfall_24h, rainfall_3d, rainfall_7d = _derive_rainfall(hourly)
 
         await ingest_reading(
             db,
@@ -137,6 +138,8 @@ async def _poll_once(db: Session, client: httpx.AsyncClient) -> None:
                 rainfall_mm_1h=rainfall_1h,
                 rainfall_mm_3h=rainfall_3h,
                 rainfall_mm_24h=rainfall_24h,
+                rainfall_mm_3d=rainfall_3d,
+                rainfall_mm_7d=rainfall_7d,
                 soil_moisture_pct=_derive_soil_pct(hourly),
                 # Placeholders only: Open-Meteo has no tilt/vibration signal.
                 tilt_degrees=1.0,

@@ -1,5 +1,36 @@
-import { useEffect, useRef } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import { ZoneData } from '@/lib/mockData';
+import { fetchEvacuationRouteFromBackend } from '@/lib/api';
+
+interface EvacuationRouteData {
+  shelter: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    capacity: number;
+    shelter_type: string;
+    is_primary: boolean;
+  };
+  route_geojson: {
+    type: string;
+    geometry: {
+      type: string;
+      coordinates: number[][];
+    };
+    properties: {
+      distance_km: number;
+      duration_min: number;
+      shelter_name: string;
+      shelter_type: string;
+      shelter_capacity: number;
+      zone_name: string;
+      zone_id: string;
+    };
+  };
+  distance_km: number;
+  duration_min: number;
+}
 
 interface EvacuationCardProps {
   zone: ZoneData;
@@ -8,6 +39,9 @@ interface EvacuationCardProps {
 
 export function EvacuationCard({ zone, onClose }: EvacuationCardProps) {
   const printRef = useRef<HTMLDivElement>(null);
+  const [routeData, setRouteData] = useState<EvacuationRouteData | null>(null);
+  const [loading, setLoading] = useState(true);
+  const [error, setError] = useState<string | null>(null);
 
   useEffect(() => {
     const handleKey = (e: KeyboardEvent) => {
@@ -16,6 +50,22 @@ export function EvacuationCard({ zone, onClose }: EvacuationCardProps) {
     document.addEventListener('keydown', handleKey);
     return () => document.removeEventListener('keydown', handleKey);
   }, [onClose]);
+
+  useEffect(() => {
+    async function fetchRoute() {
+      try {
+        setLoading(true);
+        const data = await fetchEvacuationRouteFromBackend(zone.id);
+        if (!data) throw new Error('No route is currently available');
+        setRouteData(data);
+      } catch (err) {
+        setError(err instanceof Error ? err.message : 'Unknown error');
+      } finally {
+        setLoading(false);
+      }
+    }
+    fetchRoute();
+  }, [zone.id]);
 
   const handlePrint = () => {
     if (printRef.current) {
@@ -48,6 +98,8 @@ export function EvacuationCard({ zone, onClose }: EvacuationCardProps) {
     }
   };
 
+  const shelter = routeData?.shelter;
+  const route = routeData?.route_geojson;
   const nearest = zone.nearestEvacuation;
 
   return (
@@ -79,25 +131,50 @@ export function EvacuationCard({ zone, onClose }: EvacuationCardProps) {
 
           <div className="section">
             <h2>Nearest Shelter</h2>
-            <div className="row">
-              <span className="label">Name</span>
-              <span className="value">{nearest?.name}</span>
-            </div>
-            <div className="row">
-              <span className="label">Distance</span>
-              <span className="value">{nearest?.distance} km {nearest?.direction}</span>
-            </div>
-            <div className="row">
-              <span className="label">Capacity</span>
-              <span className="value">{nearest?.capacity} people</span>
-            </div>
+            {loading ? (
+              <p className="text-body text-ink-900/70">Loading route data...</p>
+            ) : error ? (
+              <p className="text-body text-red-600">Error loading route: {error}</p>
+            ) : shelter ? (
+              <>
+                <div className="row">
+                  <span className="label">Name</span>
+                  <span className="value">{shelter.name}</span>
+                </div>
+                <div className="row">
+                  <span className="label">Type</span>
+                  <span className="value">{shelter.shelter_type.replace('_', ' ')}</span>
+                </div>
+                <div className="row">
+                  <span className="label">Distance</span>
+                  <span className="value">{routeData?.distance_km?.toFixed(1) || nearest?.distance} km</span>
+                </div>
+                <div className="row">
+                  <span className="label">Capacity</span>
+                  <span className="value">{shelter.capacity} people</span>
+                </div>
+                <div className="row">
+                  <span className="label">Est. Time</span>
+                  <span className="value">{routeData?.duration_min?.toFixed(1) || zone.timeToSafety || '~12'} min</span>
+                </div>
+              </>
+            ) : (
+              <p className="text-body text-ink-900/70">No shelter data available</p>
+            )}
           </div>
 
           <div className="section">
             <h2>Route Summary</h2>
-            <p className="text-body text-ink-900/70">
-              Proceed to designated shelter via pre-mapped evacuation route. Time to safety: {zone.timeToSafety || '~12 min'}.
-            </p>
+            {route ? (
+              <p className="text-body text-ink-900/70">
+                Computed risk-weighted shortest path via road network. Distance: {routeData?.distance_km?.toFixed(1)} km,
+                Est. travel time: {routeData?.duration_min?.toFixed(1)} min.
+              </p>
+            ) : (
+              <p className="text-body text-ink-900/70">
+                Proceed to designated shelter via pre-mapped evacuation route. Time to safety: {zone.timeToSafety || '~12 min'}.
+              </p>
+            )}
           </div>
 
           <div className="section">
