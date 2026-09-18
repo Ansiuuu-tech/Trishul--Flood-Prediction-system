@@ -1,6 +1,6 @@
 import { useState, useEffect } from 'react';
 import { NormalStateView, AlertStateView, SOSOperatorPanel } from '@/components/dashboard';
-import { RudraRing, ContourField } from '@/components/core';
+import { RudraRing, ContourField, TrishulMark } from '@/components/core';
 import { Button } from '@/components/ui';
 import { DashboardData, mockDashboardData, mockAlertData } from '@/lib/mockData';
 import { fetchDashboardData } from '@/lib/api';
@@ -94,11 +94,12 @@ export function DashboardPage() {
   return (
     <>
       <section className="section-py bg-forest-950 relative overflow-hidden" style={{ backgroundImage: `url(${dashboardBg})`, backgroundSize: 'cover', backgroundPosition: 'center' }} aria-labelledby="dashboard-heading">
-        <div className="absolute inset-0 bg-forest-950/60" aria-hidden="true" />
+        <div className="absolute inset-0 bg-[linear-gradient(100deg,rgba(7,26,37,.96),rgba(7,26,37,.7),rgba(7,26,37,.45))]" aria-hidden="true" />
+        <ContourField className="absolute inset-0" opacity={0.14} colorMode="dark" />
         <div className="relative container-main">
           <div className="flex items-center justify-between mb-6">
             <div>
-              <p className="font-mono text-caption text-fern-400 tracking-widest uppercase mb-4">
+              <p className="font-mono text-caption text-cyan-200 tracking-[.2em] uppercase mb-4">
                 {user ? `Welcome back, ${firstName}` : 'Command Center'}
               </p>
               <h1 id="dashboard-heading" className="font-display text-hero-h1 font-medium text-mist-50">
@@ -137,6 +138,7 @@ export function DashboardPage() {
                 pulse={showAlert}
                 size="md"
               />
+              <div className="hidden sm:flex h-16 w-12 items-center justify-center rounded-xl border border-cyan-100/20 bg-cyan-100/10"><TrishulMark size="md" color="light" /></div>
             </div>
           </div>
           <p className="text-body text-mist-50/60 max-w-3xl">

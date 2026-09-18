@@ -9,8 +9,8 @@ html, body, #root {
 }
 
 body {
-  background-color: #F3F5EE;
-  color: #12180F;
+  background-color: #eef7f8;
+  color: #071a25;
   font-family: 'General Sans', 'Inter', system-ui, sans-serif;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
@@ -26,36 +26,36 @@ body {
   height: 8px;
 }
 ::-webkit-scrollbar-track {
-  background: #E4E7DA;
+  background: #d6e7e9;
 }
 ::-webkit-scrollbar-thumb {
-  background: #3F6B49;
+  background: #176476;
   border-radius: 4px;
 }
 ::-webkit-scrollbar-thumb:hover {
-  background: #7FA872;
+  background: #32c6c2;
 }
 
 @layer base {
   :root {
-    --forest-950: #0B1A12;
-    --forest-800: #173626;
-    --moss-600: #3F6B49;
-    --fern-400: #7FA872;
-    --mist-50: #F3F5EE;
-    --stone-200: #E4E7DA;
-    --ink-900: #12180F;
-    --signal-amber: #C2571B;
-    --rudra-safe: #4C8B5A;
-    --rudra-watch: #C9A227;
-    --rudra-warn: #D67C2B;
-    --rudra-evacuate: #B23A2E;
+    --forest-950: #071a25;
+    --forest-800: #0d3040;
+    --moss-600: #176476;
+    --fern-400: #32c6c2;
+    --mist-50: #f2fbfc;
+    --stone-200: #d6e7e9;
+    --ink-900: #071a25;
+    --signal-amber: #ff9d2e;
+    --rudra-safe: #28b78d;
+    --rudra-watch: #f4c64e;
+    --rudra-warn: #ff922b;
+    --rudra-evacuate: #ef4e4e;
   }
 
   h1, h2, h3, h4, h5, h6 {
     font-family: 'Fraunces', 'Source Serif 4', Georgia, serif;
     font-weight: 600;
-    color: #12180F;
+    color: #071a25;
   }
 
   .font-display {
@@ -68,7 +68,7 @@ body {
 
   /* Focus visible for accessibility */
   *:focus-visible {
-    outline: 2px solid #C2571B;
+    outline: 2px solid #ff9d2e;
     outline-offset: 2px;
   }
 
@@ -91,7 +91,7 @@ body {
     @apply inline-flex items-center justify-center font-sans font-medium text-body px-6 py-3 rounded-btn transition-all duration-200 ease-out;
   }
   .btn-primary {
-    @apply btn bg-signal-amber text-white hover:bg-[#a84a18] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-signal-amber/40;
+    @apply btn bg-signal-amber text-ink-900 hover:bg-[#ffb450] active:scale-[0.98] focus-visible:ring-2 focus-visible:ring-signal-amber/40;
   }
   .btn-primary-pill {
     @apply btn-primary rounded-pill px-8;
@@ -211,30 +211,76 @@ body {
 
   /* Hero gradient text */
   .hero-gradient {
-    background: linear-gradient(135deg, #F3F5EE 0%, #7FA872 100%);
+    background: linear-gradient(135deg, #F2FBFC 0%, #32C6C2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
   .hero-gradient-dark {
-    background: linear-gradient(135deg, #F3F5EE 0%, #7FA872 100%);
+    background: linear-gradient(135deg, #F2FBFC 0%, #32C6C2 100%);
     -webkit-background-clip: text;
     -webkit-text-fill-color: transparent;
     background-clip: text;
   }
 
-  /* Team photo duotone gel-lighting treatment */
-  .team-photo {
-    filter: contrast(1.1) saturate(0.85);
+  .hero-danger-gradient {
+    background: linear-gradient(90deg, #f2fbfc 0%, #9ce8e3 35%, #ffb14d 70%, #ef4e4e 100%);
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
   }
-  .team-photo::after {
-    content: '';
+
+  .hero-signal-card {
+    position: relative;
+    overflow: hidden;
+    min-height: 280px;
+    padding: 1.5rem;
+    border: 1px solid rgba(157, 232, 227, .22);
+    border-radius: 1rem;
+    background: linear-gradient(145deg, rgba(16, 72, 89, .82), rgba(7, 26, 37, .75));
+    box-shadow: 0 24px 70px -30px rgba(30, 213, 205, .7);
+    backdrop-filter: blur(10px);
+  }
+  .hero-backdrop {
+    background: linear-gradient(90deg, rgba(3, 17, 28, .97) 0%, rgba(5, 26, 37, .88) 39%, rgba(5, 26, 37, .44) 72%, rgba(3, 17, 28, .58) 100%);
+  }
+  .hero-layout { min-height: min(680px, calc(100vh - 4rem)); }
+  @media (max-width: 1023px) {
+    .hero-backdrop { background: linear-gradient(90deg, rgba(3, 17, 28, .91), rgba(5, 26, 37, .67)); }
+    .hero-layout { min-height: auto; }
+  }
+
+  /* Single interactive team portrait */
+  .team-photo {
+    filter: contrast(1.04) saturate(.92) brightness(.9);
+    transition: filter 250ms ease, transform 500ms ease;
+  }
+  .team-portrait:hover .team-photo { filter: contrast(1.08) saturate(1.06) brightness(.98); transform: scale(1.012); }
+  .team-photo-fallback { background: #0d3040; }
+  .team-hotspot {
     position: absolute;
-    inset: 0;
-    mix-blend-mode: color;
-    background: linear-gradient(135deg, #D67C2B 0%, transparent 45%, #7FA872 100%);
-    opacity: 0.35;
-    pointer-events: none;
+    z-index: 20;
+    top: 21%;
+    width: 12%;
+    height: 68%;
+    transform: translateX(-50%);
+    cursor: crosshair;
+    outline: none;
+  }
+  .team-hotspot::before { content: ''; position: absolute; inset: 0; border-radius: 999px; }
+  .team-hotspot:hover::before, .team-hotspot:focus-visible::before, .team-hotspot.is-active::before { background: rgba(50, 198, 194, .15); box-shadow: inset 0 0 0 1px rgba(190, 255, 250, .5); }
+  .team-hotspot-dot { position: absolute; top: 34%; left: 50%; width: 10px; height: 10px; border-radius: 999px; background: #f2fbfc; border: 2px solid #ef4e4e; box-shadow: 0 0 0 5px rgba(239, 78, 78, .17); transform: translate(-50%, -50%); opacity: 0; transition: opacity 150ms ease; }
+  .team-hotspot-line { position: absolute; top: 34%; left: 50%; height: 1px; width: 0; background: #f2fbfc; transform: translateY(-50%); transform-origin: left; transition: width 180ms ease; }
+  .team-hotspot-label { position: absolute; top: calc(34% - 15px); left: calc(50% + 88px); padding: .4rem .65rem; border: 1px solid rgba(242, 251, 252, .35); border-radius: 999px; background: rgba(7, 26, 37, .88); color: #f2fbfc; font: 500 .72rem 'IBM Plex Mono', monospace; letter-spacing: .08em; opacity: 0; transform: translateX(-8px); transition: opacity 150ms ease, transform 150ms ease; pointer-events: none; }
+  .team-hotspot:nth-of-type(odd) .team-hotspot-line { left: auto; right: 50%; transform-origin: right; }
+  .team-hotspot:nth-of-type(odd) .team-hotspot-label { left: auto; right: calc(50% + 88px); }
+  .team-hotspot:hover .team-hotspot-dot, .team-hotspot:focus-visible .team-hotspot-dot, .team-hotspot.is-active .team-hotspot-dot { opacity: 1; }
+  .team-hotspot:hover .team-hotspot-line, .team-hotspot:focus-visible .team-hotspot-line, .team-hotspot.is-active .team-hotspot-line { width: 78px; }
+  .team-hotspot:hover .team-hotspot-label, .team-hotspot:focus-visible .team-hotspot-label, .team-hotspot.is-active .team-hotspot-label { opacity: 1; transform: translateX(0); }
+  @media (max-width: 640px) {
+    .team-hotspot { top: 18%; height: 72%; width: 15%; }
+    .team-hotspot-line { width: 0 !important; }
+    .team-hotspot-label { left: 50% !important; right: auto !important; top: calc(34% + 18px); transform: translateX(-50%) !important; }
   }
 
   /* Skeleton shimmer */

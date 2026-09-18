@@ -1,12 +1,13 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { ContourField, DamageScene, LiveMap } from '@/components/core';
+import { ContourField, DamageScene, LiveMap, TrishulMark } from '@/components/core';
 import { LiveIndicator } from '@/components/dashboard';
 import { KAILASH_BG } from '@/components/core/FeaturePage';
 import { LiveTicker, LiveZoneStrip, TopRiskCallout } from '@/components/home';
 import { fetchAllHistoricalEvents, fetchCurrentRisk, fetchHealth, fetchLatestSensors, fetchZones, type BackendSensor, type BackendZone, type RiskAssessment } from '@/lib/api';
 import { useLiveFeed } from '@/hooks/useLiveFeed';
+import { useAuth } from '@/context/AuthContext';
 
 const IMD_RADAR_URL = 'https://mausam.imd.gov.in/Radar/MOSAIC/Converted/mosaic.gif';
 const IMD_SATELLITE_URL = 'https://mausam.imd.gov.in/Satellite/3Dasiasec_ir1.jpg';
@@ -28,6 +29,7 @@ function LeadTime({ minutes }: { minutes: number }) {
 }
 
 export function HomePage() {
+  const { user } = useAuth();
   const live = useLiveFeed();
   const [zones, setZones] = useState<BackendZone[]>([]);
   const [risks, setRisks] = useState<Record<string, RiskAssessment>>({});
@@ -59,37 +61,46 @@ export function HomePage() {
   }), [historicalEvents, zones]);
   const effectiveRisks = useMemo(() => zones.map((zone) => live.latestRiskByZone[zone.id] || risks[zone.id]).filter(Boolean), [zones, risks, live.latestRiskByZone]);
   const topRisk = useMemo(() => [...effectiveRisks].sort((a, b) => b.score - a.score)[0], [effectiveRisks]);
+  const primaryAction = user ? { to: '/dashboard', label: 'Dashboard' } : { to: '/login', label: 'Login' };
   return (
     <div className="min-h-screen bg-mist-50 dark:bg-forest-950">
       <div>
         {/* Hero Section */}
         <section className="relative min-h-screen flex items-center bg-forest-950 overflow-hidden" aria-labelledby="hero-heading">
           <img src={KAILASH_BG} alt="" className="absolute inset-0 w-full h-full object-cover" />
+          <div className="hero-backdrop absolute inset-0" aria-hidden="true" />
           <ContourField className="absolute inset-0" opacity={0.08} />
-          <div className="relative container-main py-20 lg:py-32">
-            <div className="max-w-4xl">
-              <p className="font-mono text-caption text-fern-400 tracking-widest uppercase mb-6 animate-fade-in">
-                HYPER-LOCAL EARLY WARNING
+          <div className="relative container-main w-full py-24 lg:py-32">
+            <div className="hero-layout grid items-end gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(19rem,.65fr)]">
+              <div className="max-w-4xl">
+              <p className="font-mono text-caption text-cyan-200 tracking-[0.22em] uppercase mb-6 animate-fade-in">
+                Himalayan flood intelligence / live
               </p>
               <h1 id="hero-heading" className="font-display text-hero-h1 font-medium text-mist-50 leading-none mb-6 animate-fade-in" style={{ animationDelay: '100ms' }}>
-                Know the river.<br />
-                <span className="block">Warn the village.</span>
+                Know before<br />
+                <span className="block hero-danger-gradient">the water arrives.</span>
               </h1>
-              <p className="text-body text-mist-50/70 max-w-2xl mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
+              <p className="text-body text-mist-50/80 max-w-2xl mb-8 animate-fade-in" style={{ animationDelay: '200ms' }}>
                 Trishul fuses rainfall, ground condition, and vibration into one warning system — so no village learns about a flood from the flood itself.
               </p>
               <div className="flex flex-col sm:flex-row gap-4 animate-fade-in" style={{ animationDelay: '300ms' }}>
-                <Link to="/features">
+                <Link to={primaryAction.to}>
                   <Button variant="primary-pill" size="lg">
-                    See Trishul Live
+                    {primaryAction.label}
                   </Button>
                 </Link>
                 <Link to="/about">
                   <Button variant="secondary" size="lg">
-                    How It Works
+                    About Flash Floods
                   </Button>
                 </Link>
               </div>
+              </div>
+              <aside className="hero-signal-card hidden lg:block animate-fade-in" style={{ animationDelay: '220ms' }} aria-label="Trishul warning signals">
+                <TrishulMark size="xl" color="light" animate className="absolute -right-2 -top-12 h-64 w-auto text-cyan-200 opacity-80" />
+                <p className="relative font-mono text-[10px] tracking-[.22em] text-cyan-100 uppercase">Signal fusion</p>
+                <div className="relative mt-16 space-y-4 font-mono text-xs text-mist-50/75"><div className="flex justify-between border-b border-white/10 pb-3"><span>RAIN</span><span className="text-cyan-200">TRACKED</span></div><div className="flex justify-between border-b border-white/10 pb-3"><span>GROUND</span><span className="text-signal-amber">WATCH</span></div><div className="flex justify-between"><span>VIBRATION</span><span className="text-rudra-safe">NOMINAL</span></div></div>
+              </aside>
             </div>
           </div>
 
@@ -187,16 +198,16 @@ export function HomePage() {
               </a>
             </div>
 
-            <div className="grid md:grid-cols-3 gap-6 lg:gap-8">
-              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
-                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+            <div className="mx-auto max-w-5xl space-y-8">
+              <article className="overflow-hidden rounded-card border border-moss-600 bg-forest-800">
+                <div className="aspect-[16/7] min-h-[280px] bg-forest-950 overflow-hidden">
                   <img
                     src={IMD_SATELLITE_URL}
                     alt="Live IMD infrared satellite view of Asia"
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="p-5">
+                <div className="p-6 md:p-8">
                   <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-2">01 / Satellite</p>
                   <h3 className="font-display text-h3 text-mist-50 mb-2">Infrared satellite</h3>
                   <p className="text-caption text-mist-50/60 mb-4">Live cloud temperature and storm structure from IMD's Asia sector view.</p>
@@ -204,15 +215,15 @@ export function HomePage() {
                 </div>
               </article>
 
-              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
-                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+              <article className="overflow-hidden rounded-card border border-moss-600 bg-forest-800">
+                <div className="aspect-[16/7] min-h-[280px] bg-forest-950 overflow-hidden">
                   <img
                     src={IMD_RADAR_URL}
                     alt="Live IMD mosaic radar reflectivity map"
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="p-5">
+                <div className="p-6 md:p-8">
                   <p className="font-mono text-caption text-signal-amber tracking-widest uppercase mb-2">02 / Radar</p>
                   <h3 className="font-display text-h3 text-mist-50 mb-2">Radar reflectivity</h3>
                   <p className="text-caption text-mist-50/60 mb-4">Live precipitation echoes from the IMD radar network, matching the Mausam radar view.</p>
@@ -220,15 +231,15 @@ export function HomePage() {
                 </div>
               </article>
 
-              <article className="rounded-card border border-moss-600 bg-forest-800 overflow-hidden">
-                <div className="aspect-[4/3] bg-forest-950 overflow-hidden">
+              <article className="overflow-hidden rounded-card border border-moss-600 bg-forest-800">
+                <div className="aspect-[16/7] min-h-[280px] bg-forest-950 overflow-hidden">
                   <img
                     src={IMD_LIGHTNING_URL}
                     alt="Live IMD brightness temperature lightning map"
                     className="h-full w-full object-cover"
                   />
                 </div>
-                <div className="p-5">
+                <div className="p-6 md:p-8">
                   <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-2">03 / Lightning</p>
                   <h3 className="font-display text-h3 text-mist-50 mb-2">District nowcast</h3>
                   <p className="text-caption text-mist-50/60 mb-4">Live IMD warning map for thunderstorms, lightning, and other district-level hazards.</p>
@@ -243,7 +254,7 @@ export function HomePage() {
           </div>
         </section>
 
-        <section className="section-py bg-mist-50 dark:bg-forest-900" aria-labelledby="model-trust-heading">
+        <section className="hidden" aria-hidden="true">
           <div className="container-main grid gap-6 lg:grid-cols-[1fr_1.2fr] lg:items-center">
             <div>
               <p className="font-mono text-caption text-accent-light tracking-widest uppercase mb-3">Model trust</p>

@@ -6,33 +6,33 @@ export default {
       colors: {
         // Trishul Design Tokens — "Wet Forest / Signal Amber"
         forest: {
-          950: "#0B1A12",
-          800: "#173626",
+          950: "#071A25",
+          800: "#0D3040",
         },
         moss: {
-          600: "#3F6B49",
+          600: "#176476",
         },
         fern: {
-          400: "#7FA872",
+          400: "#32C6C2",
         },
         mist: {
-          50: "#F3F5EE",
+          50: "#F2FBFC",
         },
         stone: {
-          200: "#E4E7DA",
+          200: "#D6E7E9",
         },
         ink: {
-          900: "#12180F",
+          900: "#071A25",
         },
         signal: {
-          amber: "#C2571B",
+          amber: "#FF9D2E",
         },
         // Rudra Level status colors — reserved exclusively for risk indicators
         rudra: {
-          safe: "#4C8B5A",
-          watch: "#C9A227",
-          warn: "#D67C2B",
-          evacuate: "#B23A2E",
+          safe: "#28B78D",
+          watch: "#F4C64E",
+          warn: "#FF922B",
+          evacuate: "#EF4E4E",
         },
         // Legacy surface colors (for existing dashboard pages during transition)
         surface: {

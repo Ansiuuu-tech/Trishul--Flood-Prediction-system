@@ -4,36 +4,47 @@ import { Button, Input, Card } from '@/components/ui';
 import { ContourField } from '@/components/core';
 import teamBg from '@/assets/images/team-bg.jpeg?url';
 
-const initials = (name: string) =>
-  name
-    .split(' ')
-    .map((part) => part[0])
-    .join('')
-    .slice(0, 2)
-    .toUpperCase();
-
-function TeamPhoto({ member, index }: { member: typeof team[0]; index: number }) {
+function TeamPhoto() {
+  const [activeMember, setActiveMember] = useState<string | null>(null);
   return (
-    <figure className="relative group">
-      <div className="relative aspect-[3/4] overflow-hidden rounded-lg border-2 border-stone-200 dark:border-moss-600 bg-forest-950">
+    <figure className="team-portrait relative overflow-hidden rounded-[1.5rem] border border-white/15 bg-forest-950 shadow-2xl">
+      <div className="relative aspect-[16/9] min-h-[340px]">
         <img
-          src={member.photo}
-          alt={member.name}
-          className="team-photo w-full h-full object-cover transition-transform duration-200 ease-out group-hover:scale-105"
-          loading="lazy"
+          src="/team/team-photo.jpg"
+          alt="The Trishul team: Anand, Anshu, Anshumaan, Arya, Ayansh, and Bibhash"
+          className="team-photo absolute inset-0 z-10 h-full w-full object-cover"
           onError={(event) => {
-            const target = event.target as HTMLImageElement;
-            target.style.display = 'none';
-            const fallback = target.nextElementSibling as HTMLElement | null;
-            if (fallback) fallback.style.display = 'flex';
+            event.currentTarget.style.opacity = '0';
           }}
         />
-        <div className="absolute inset-0 bg-forest-950/40 items-center justify-center hidden" aria-hidden="true">
-          <span className="font-display text-4xl text-mist-50/80">{initials(member.name)}</span>
+        <div className="absolute inset-0 z-0 team-photo-fallback" aria-hidden="true">
+          <div className="absolute inset-x-0 bottom-0 h-2/3 bg-gradient-to-t from-[#071a25] via-[#0d4051] to-[#2a8094]" />
+          <div className="absolute bottom-[11%] left-[11%] h-[62%] w-[78%] rounded-t-[50%] bg-forest-950/70 blur-[2px]" />
         </div>
-        <div className="absolute inset-x-0 bottom-0 h-28 bg-gradient-to-t from-forest-950/80 to-transparent" aria-hidden="true" />
-        <figcaption className="absolute bottom-4 left-4 right-4 font-mono text-caption text-mist-50 tracking-wide">{member.name}</figcaption>
-        <div className="absolute top-3 right-3 font-mono text-xs text-mist-50/50 bg-forest-950/40 px-2 py-1 rounded">{String(index + 1).padStart(2, '0')}</div>
+        <div className="absolute inset-0 bg-[linear-gradient(90deg,rgba(1,12,20,.68),transparent_42%,rgba(1,12,20,.12))]" aria-hidden="true" />
+        <div className="absolute left-5 top-5 z-10 rounded-full border border-white/25 bg-forest-950/65 px-3 py-1.5 font-mono text-[10px] uppercase tracking-[.2em] text-mist-50 backdrop-blur">Team / 06</div>
+        {team.map((member) => (
+          <button
+            key={member.id}
+            type="button"
+            aria-label={`Show ${member.name}`}
+            aria-pressed={activeMember === member.id}
+            onMouseEnter={() => setActiveMember(member.id)}
+            onFocus={() => setActiveMember(member.id)}
+            onClick={() => setActiveMember(activeMember === member.id ? null : member.id)}
+            onMouseLeave={() => setActiveMember(null)}
+            className={`team-hotspot ${activeMember === member.id ? 'is-active' : ''}`}
+            style={{ left: member.left }}
+          >
+            <span className="team-hotspot-dot" aria-hidden="true" />
+            <span className="team-hotspot-line" aria-hidden="true" />
+            <span className="team-hotspot-label">{member.name}</span>
+          </button>
+        ))}
+        <figcaption className="absolute bottom-5 left-5 z-10 max-w-xs text-mist-50">
+          <span className="block font-mono text-[10px] uppercase tracking-[.18em] text-cyan-200">The people behind Trishul</span>
+          <span className="mt-1 block text-sm text-mist-50/75">Hover over a team member to identify them.</span>
+        </figcaption>
       </div>
     </figure>
   );
@@ -89,13 +100,14 @@ export function ContactPage() {
           </div>
         </section>
 
-        <section className="section-py bg-mist-50 dark:bg-forest-950" aria-labelledby="team-grid-heading">
+        <section className="section-py bg-[#071a25] relative overflow-hidden" aria-labelledby="team-grid-heading">
+          <ContourField className="absolute inset-0" opacity={0.12} colorMode="dark" />
           <div className="container-main">
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 lg:gap-8">
-              {team.map((member, index) => (
-                <TeamPhoto key={member.id} member={member} index={index} />
-              ))}
+            <div className="mb-8 flex flex-col gap-3 md:flex-row md:items-end md:justify-between">
+              <div><p className="font-mono text-caption uppercase tracking-[.18em] text-cyan-200">The crew</p><h2 id="team-grid-heading" className="mt-2 font-display text-h2 text-mist-50">One photograph. Six builders.</h2></div>
+              <p className="max-w-md text-body text-mist-50/65">Move across each person to reveal the team behind the early-warning system.</p>
             </div>
+            <TeamPhoto />
           </div>
         </section>
 

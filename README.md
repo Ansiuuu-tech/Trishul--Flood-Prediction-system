@@ -78,6 +78,17 @@ Open http://localhost:5173.
 
 ---
 
+## Frontend experience
+
+The frontend uses a high-contrast flood-response visual system: deep-water surfaces, cyan telemetry signals, amber actions, and red evacuation states. The home page includes a live signal-fusion hero, stacked full-width IMD satellite, radar, and lightning views, and an authentication-aware primary action:
+
+- Guests see **Login**.
+- Signed-in users see **Dashboard**.
+
+The Contact page presents the team as one interactive photograph. Hover or focus a person to reveal their name: Anand, Anshu, Anshumaan, Arya, Ayansh, or Bibhash. The image is served from `frontend/public/team/team-photo.jpg`; replace that file to update the photograph without changing code.
+
+---
+
 ## The eight modules
 
 Trishul is architected as eight integrated modules. Each module contributes an independent signal — three of them (Varuna Watch, Bhumi Sense, Kampan Alert) feed into Trishul Core, which fuses them into a single **Rudra Level**. Kailash View renders the result on a GIS map, Drishti Panel explains *why* a level was chosen, and Ghanta Signal delivers the alert through every channel that works when the power is out.
