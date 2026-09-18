@@ -245,6 +245,12 @@ body {
     background: linear-gradient(90deg, rgba(3, 17, 28, .97) 0%, rgba(5, 26, 37, .88) 39%, rgba(5, 26, 37, .44) 72%, rgba(3, 17, 28, .58) 100%);
   }
   .hero-layout { min-height: min(680px, calc(100vh - 4rem)); }
+  .home-reading-section {
+    background:
+      radial-gradient(circle at 78% -35%, rgba(66, 213, 223, .38), transparent 43%),
+      radial-gradient(circle at 15% 35%, rgba(35, 112, 155, .42), transparent 45%),
+      linear-gradient(115deg, #061d2a 0%, #0b4055 48%, #071a25 100%);
+  }
   @media (max-width: 1023px) {
     .hero-backdrop { background: linear-gradient(90deg, rgba(3, 17, 28, .91), rgba(5, 26, 37, .67)); }
     .hero-layout { min-height: auto; }

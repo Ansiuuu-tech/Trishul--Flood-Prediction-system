@@ -107,8 +107,8 @@ export function HomePage() {
 
         </section>
 
-        <section className="bg-forest-950 pb-12" aria-label="Current highest risk">
-          <div className="container-main">
+        <section className="home-reading-section relative overflow-hidden pb-12" aria-label="Current highest risk">
+          <div className="relative container-main">
             {topRisk ? <div className="max-w-3xl"><TopRiskCallout zoneName={zones.find((zone) => zone.id === topRisk.zone_id)?.name || topRisk.zone_id} score={topRisk.score} level={topRisk.level} reason={topRisk.reasons?.[0]} recommendedAction={topRisk.recommended_action} />
               {(topRisk.level === 'Warning' || topRisk.level === 'Evacuate') && topRisk.estimated_lead_time_minutes > 0 ? <div className="mt-3"><LeadTime minutes={topRisk.estimated_lead_time_minutes} /></div> : null}
             </div> : <div className="max-w-3xl rounded-card border border-moss-600 bg-forest-800 p-6 text-mist-50/65">Loading current zone status…</div>}
