@@ -5,7 +5,7 @@ import datetime as dt
 from fastapi import APIRouter, Depends, HTTPException
 from sqlalchemy.orm import Session
 
-from app.alert_engine import _deliver_sms, get_recipients_for_alert
+from app.alert_engine import _deliver_sms, _deliver_telegram, get_recipients_for_alert
 from app.config import get_settings
 from app.database import get_db
 from app.models import Alert, AlertRecipient, Zone
@@ -180,14 +180,18 @@ async def send_test_alert(db: Session = Depends(get_db)):
     zone = db.query(Zone).first()
     if not zone:
         raise HTTPException(status_code=422, detail="No zones seeded yet")
+    message = f"TEST ALERT for {zone.name}: this is a manually triggered test notification."
+    telegram_ok = await _deliver_telegram(message)
+    settings = get_settings()
+    channels = ["in_app", "telegram" if telegram_ok else "telegram_failed"] if settings.telegram_configured else ["in_app", "telegram_demo_mode"]
     alert = Alert(
         zone_id=zone.id,
         level="Watch",
         previous_level="Safe",
-        message=f"TEST ALERT for {zone.name}: this is a manually triggered test notification.",
+        message=message,
         reasons=["Manually triggered via /api/alerts/test"],
         status="active",
-        delivery_channels=["in_app", "test_mode"],
+        delivery_channels=channels,
     )
     db.add(alert)
     db.commit()

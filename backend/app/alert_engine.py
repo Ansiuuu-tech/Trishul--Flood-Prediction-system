@@ -13,6 +13,7 @@ Rules:
 from __future__ import annotations
 
 import datetime as dt
+import logging
 
 import httpx
 from sqlalchemy.orm import Session
@@ -22,6 +23,7 @@ from app.models import Alert, AlertRecipient, Zone
 from app.risk_engine import LEVEL_ORDER, RiskResult
 
 settings = get_settings()
+logger = logging.getLogger(__name__)
 
 # In-memory cooldown tracker: {(zone_id, level): last_sent_at}
 _cooldown_cache: dict[tuple[str, str], dt.datetime] = {}
@@ -55,8 +57,14 @@ async def _deliver_telegram(message: str) -> bool:
     try:
         async with httpx.AsyncClient(timeout=5.0) as client:
             resp = await client.post(url, json={"chat_id": settings.TELEGRAM_CHAT_ID, "text": message})
-            return resp.status_code == 200
-    except Exception:
+            if resp.status_code != 200:
+                # Telegram's response explains common configuration problems
+                # (for example, a bot that has not been added to the target chat).
+                logger.warning("Telegram delivery failed: HTTP %s: %s", resp.status_code, resp.text)
+                return False
+            return True
+    except httpx.HTTPError as exc:
+        logger.warning("Telegram delivery request failed: %s", exc)
         return False
 
 
