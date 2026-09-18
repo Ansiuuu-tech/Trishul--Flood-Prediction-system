@@ -20,7 +20,7 @@ async def start(payload: SimulationScenarioIn | None = None, db: Session = Depen
     if target and not db.get(Zone, target):
         raise HTTPException(status_code=404, detail=f"Zone '{target}' not found")
     if scenario in ("rapid_escalation", "sensor_failure") and not target:
-        target = db.query(Zone).first().id
+        raise HTTPException(status_code=422, detail=f"{scenario} requires an explicit zone_id")
     sim.start_simulation(scenario, target)
     return _status()
 
@@ -43,7 +43,7 @@ async def scenario(payload: SimulationScenarioIn, db: Session = Depends(get_db))
         raise HTTPException(status_code=404, detail=f"Zone '{payload.zone_id}' not found")
     target = payload.zone_id
     if payload.scenario in ("rapid_escalation", "sensor_failure") and not target:
-        target = db.query(Zone).first().id
+        raise HTTPException(status_code=422, detail=f"{payload.scenario} requires an explicit zone_id")
     sim.set_scenario(payload.scenario, target)
     return _status()
 

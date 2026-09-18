@@ -2,19 +2,22 @@ from __future__ import annotations
 
 import datetime as dt
 
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect
+from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
 from starlette.middleware.sessions import SessionMiddleware
 from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import get_settings
 from app.database import get_db, init_db, session_scope
-from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, weather, zones
-from app.schemas import HealthOut
+from app.models import HistoricalEvent
+from sqlalchemy.orm import Session
+from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, sos, weather, zones
+from app.schemas import HealthOut, HistoricalEventOut
 from app.seed_data import seed_database
 from app.simulation_engine import start_simulation
 from app.weather_poller import start_weather_poller, stop_weather_poller
 from app.ws_manager import manager
+from app.ml.predict import get_predictor
 
 settings = get_settings()
 
@@ -57,6 +60,7 @@ app.include_router(simulation.router)
 app.include_router(weather.router)
 app.include_router(auth.router)
 app.include_router(auth_oauth.router)
+app.include_router(sos.router)
 
 
 @app.on_event("startup")
@@ -64,6 +68,8 @@ async def on_startup() -> None:
     init_db()
     with session_scope() as db:
         seed_database(db)
+    get_predictor()
+    print("[startup] Flood risk model loaded")
     if settings.DATA_MODE == "live":
         start_weather_poller()
     else:
@@ -87,6 +93,13 @@ def health():
         email_configured=settings.email_configured,
         sms_configured=settings.twilio_configured,
     )
+
+
+@app.get("/api/historical-events", response_model=list[HistoricalEventOut])
+def get_historical_events(db: Session = Depends(get_db)):
+    """Return documented historical events for all zones, newest first."""
+    return db.query(HistoricalEvent).order_by(HistoricalEvent.event_date.desc()).all()
+
 
 
 @app.websocket("/ws/live")

@@ -807,9 +807,18 @@ def _ensure_demo_users(db: Session) -> None:
 
 
 def seed_shelters(db: Session) -> None:
-    if db.query(EvacuationShelter).count() > 0:
-        return
+    """Seed every monitored zone with at least one visible safe centre.
+
+    The original seed data only covered a subset of zones.  That meant the
+    evacuation API either had no centre to display or (worse) selected a
+    shelter from a different district.  Existing curated centres are kept;
+    the remaining demo zones receive their designated ``safe_location`` near
+    the zone coordinate so the map always has a local, explicit destination.
+    """
+    existing_zone_ids = {zone_id for (zone_id,) in db.query(EvacuationShelter.zone_id).distinct()}
     for zone_id, shelters in _SHELTERS.items():
+        if zone_id in existing_zone_ids:
+            continue
         for name, lat, lng, capacity, shelter_type in shelters:
             db.add(EvacuationShelter(
                 zone_id=zone_id,
@@ -820,6 +829,23 @@ def seed_shelters(db: Session) -> None:
                 shelter_type=shelter_type,
                 is_primary=True,
             ))
+        existing_zone_ids.add(zone_id)
+
+    for zone in db.query(Zone).all():
+        if zone.id in existing_zone_ids:
+            continue
+        db.add(EvacuationShelter(
+            zone_id=zone.id,
+            name=zone.safe_location or f"{zone.name} designated safe centre",
+            # Explicit local demo coordinates for zones without a curated
+            # centre.  Keeping this nearby avoids presenting a different
+            # district's shelter as an evacuation destination.
+            lat=zone.latitude + 0.006,
+            lng=zone.longitude + 0.006,
+            capacity=max(100, min(zone.population, 1000)),
+            shelter_type="community_center",
+            is_primary=True,
+        ))
     db.commit()
 
 

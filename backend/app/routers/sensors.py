@@ -9,7 +9,7 @@ from app.alert_engine import maybe_create_alert
 from app.config import get_settings
 from app.database import get_db
 from app.models import RiskAssessment, SensorReading, Zone
-from app.risk_engine import RiskInputs, evaluate_risk
+from app.risk_engine import ACTION_BY_LEVEL, LEAD_TIME_BY_LEVEL, RiskInputs, compute_hybrid_risk, evaluate_risk
 from app.schemas import SensorReadingBulkIn, SensorReadingIn, SensorReadingOut
 from app.ws_manager import manager
 
@@ -71,6 +71,8 @@ async def ingest_reading(db: Session, payload: SensorReadingIn) -> SensorReading
         rainfall_mm_1h=payload.rainfall_mm_1h,
         rainfall_mm_3h=payload.rainfall_mm_3h,
         rainfall_mm_24h=payload.rainfall_mm_24h,
+        rainfall_mm_3d=payload.rainfall_mm_3d,
+        rainfall_mm_7d=payload.rainfall_mm_7d,
         soil_moisture_pct=payload.soil_moisture_pct,
         tilt_degrees=payload.tilt_degrees,
         tilt_change_rate=payload.tilt_change_rate,
@@ -105,6 +107,35 @@ async def ingest_reading(db: Session, payload: SensorReadingIn) -> SensorReading
         reading_age_seconds=0,
     )
     result = evaluate_risk(inputs)
+
+    # --- ML hybrid prediction ---
+    ml_reading = {
+        "rainfall_24h": reading.rainfall_mm_24h,
+        "rainfall_3d": reading.rainfall_mm_3d,
+        "rainfall_7d": reading.rainfall_mm_7d,
+        "rainfall_intensity": reading.rainfall_mm_1h,
+        "soil_moisture": reading.soil_moisture_pct,
+        "elevation": zone.elevation_m,
+        "slope": zone.slope_degrees,
+        "terrain_susceptibility": zone.terrain_risk,
+        "seismic_zone": zone.seismic_zone or "low",
+        "quake_count_100km_alltime": zone.quake_count_100km_alltime or 0,
+        "seismic_activity_90d": 0,  # not tracked yet
+        "historical_flood_freq": zone.historical_flood_freq or 0.0,
+        "historical_landslide_freq": zone.historical_landslide_freq or 0.0,
+        "month": dt.datetime.now(dt.timezone.utc).month,
+    }
+    hybrid_result = compute_hybrid_risk(ml_reading, result.level, result.score)
+    ml_prob = hybrid_result["ml_probability"]
+
+    if hybrid_result["final_level"] != result.level:
+        result.level = hybrid_result["final_level"]
+        result.reasons.append(
+            f"ML model flagged HIGH_RISK (probability={ml_prob:.2f}); escalated to Warning."
+        )
+        result.recommended_action = ACTION_BY_LEVEL["Warning"]
+        result.estimated_lead_time_minutes = LEAD_TIME_BY_LEVEL["Warning"]
+
     assessment = RiskAssessment(
         zone_id=zone.id, score=result.score, level=result.level, confidence=result.confidence,
         rainfall_risk=result.rainfall_risk, soil_risk=result.soil_risk, tilt_risk=result.tilt_risk,
@@ -112,6 +143,7 @@ async def ingest_reading(db: Session, payload: SensorReadingIn) -> SensorReading
         reasons=result.reasons, recommended_action=result.recommended_action,
         estimated_lead_time_minutes=result.estimated_lead_time_minutes,
         data_quality_warning=result.data_quality_warning, model_version=result.model_version,
+        ml_probability=ml_prob,
     )
     db.add(assessment)
     db.flush()

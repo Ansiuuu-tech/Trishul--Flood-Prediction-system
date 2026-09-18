@@ -13,49 +13,70 @@ import {
   useMapEvents,
 } from 'react-leaflet';
 import L from 'leaflet';
-import type { Layer } from 'leaflet';
 import 'leaflet/dist/leaflet.css';
 
 import { rudraColors } from '@/components/core/RudraRing';
 import { useUserLocation } from '@/hooks/useUserLocation';
 import { ZoneData, RudraLevel } from '@/lib/mockData';
-import {
-  fetchCurrentRisk,
-  fetchLatestSensors,
-  type RiskAssessment,
-  type BackendSensor,
-} from '@/lib/api';
+import type { RiskAssessment, BackendSensor } from '@/lib/api';
+import type { RiskUpdateEvent, SensorReadingEvent } from '@/hooks/useLiveFeed';
 
 export type LiveMapProps = {
-  center?: [number, number];
-  zoom?: number;
-  showWeatherOverlay?: 'precipitation_new' | 'clouds_new' | 'temp_new' | null;
-  showRainRadar?: boolean;
-  showGlaciers?: boolean;
-  showHazardPolygons?: boolean;
-  showSensors?: boolean;
-  showRivers?: boolean;
-  showLandslides?: boolean;
-  showEvacuation?: boolean;
-  /** Optional local GeoJSON URLs. Keep these real/sourced; empty values simply hide the layer. */
-  floodRiskUrl?: string;
-  landslideUrl?: string;
-  riversUrl?: string;
-  /** Existing backend zone data, transformed by zonesFromData(). */
-  zoneMarkers?: {
-    id: string;
-    name: string;
-    district?: string;
-    lat: number;
-    lng: number;
-    rudraLevel: RudraLevel;
-    shaktiScore?: number;
-    geojsonPolygon?: { type: string; coordinates: number[][][] };
-  }[];
-  showUserLocation?: boolean;
-  onZoneSelect?: (zoneId: string) => void;
-  children?: ReactNode;
-};
+   center?: [number, number];
+   zoom?: number;
+   showWeatherOverlay?: 'precipitation_new' | 'clouds_new' | 'temp_new' | null;
+   showRainRadar?: boolean;
+   showGlaciers?: boolean;
+   showHazardPolygons?: boolean;
+   showSensors?: boolean;
+   showRivers?: boolean;
+   showLandslides?: boolean;
+   showEvacuation?: boolean;
+   /** Optional local GeoJSON URLs. Keep these real/sourced; empty values simply hide the layer. */
+   floodRiskUrl?: string;
+   landslideUrl?: string;
+   riversUrl?: string;
+   /** Existing backend zone data, transformed by zonesFromData(). */
+   zoneMarkers?: {
+     id: string;
+     name: string;
+     district?: string;
+     lat: number;
+     lng: number;
+     rudraLevel: RudraLevel;
+     shaktiScore?: number;
+     geojsonPolygon?: { type: string; coordinates: number[][][] };
+   }[];
+   /** Live risk updates keyed by zone ID, for real-time marker updates. */
+   liveRiskByZone?: Record<string, RiskUpdateEvent>;
+   /** Live sensor updates keyed by zone ID, for real-time sensor marker updates. */
+   liveSensorByZone?: Record<string, SensorReadingEvent>;
+   /** Documented historical events, usually joined to their parent zone coordinates. */
+   historicalMarkers?: { id: string; lat: number; lng: number; label: string; date: string; severity?: string }[];
+   showUserLocation?: boolean;
+   onZoneSelect?: (zoneId: string) => void;
+   /** Evacuation route GeoJSON from API */
+   evacuationRoute?: {
+     geometry: {
+       type: string;
+       coordinates: number[][];
+     };
+     properties: {
+       distance_km: number;
+       duration_min: number;
+       shelter_name: string;
+       shelter_type: string;
+       shelter_capacity: number;
+       zone_name: string;
+       zone_id: string;
+     };
+   } | null;
+   /** Shelter location for marker */
+   shelterLocation?: { lat: number; lng: number; name: string; capacity: number; shelter_type: string } | null;
+   /** All known evacuation centres for the selected zone. */
+   shelterLocations?: { id: string; lat: number; lng: number; name: string; capacity: number; shelter_type: string }[];
+   children?: ReactNode;
+ };
 
 const DEFAULT_CENTER: [number, number] = [30.2, 79.2];
 const DEFAULT_ZOOM = 8;
@@ -85,6 +106,14 @@ function formatLevel(level: RudraLevel) {
   return level === 'warn' ? 'WARNING' : level.toUpperCase();
 }
 
+/**
+ * React 18 StrictMode double-mounts components in dev, which can make
+ * Leaflet cache a stale 0x0 container size on the throwaway first mount --
+ * resulting in a map that never requests any tiles even though the
+ * container looks the right size on screen. A ResizeObserver on the actual
+ * map container reacts to real layout changes (mount, animation settling,
+ * window resize) rather than guessing a timeout, and is the robust fix.
+ */
 function InvalidateSizeOnMount() {
   const map = useMap();
 
@@ -135,14 +164,14 @@ function UserLocationMarker() {
 type ZoneMarkerType = NonNullable<LiveMapProps['zoneMarkers']>[number];
 
 function ZoneMarkers({
-  zones,
-  riskByZone,
-  onZoneSelect,
-}: {
-  zones: LiveMapProps['zoneMarkers'];
-  riskByZone: Record<string, RiskAssessment>;
-  onZoneSelect?: (zoneId: string) => void;
-}) {
+   zones,
+   riskByZone,
+   onZoneSelect,
+ }: {
+   zones: LiveMapProps['zoneMarkers'];
+   riskByZone: Record<string, RiskUpdateEvent>;
+   onZoneSelect?: (zoneId: string) => void;
+ }) {
   const map = useMap();
 
   if (!zones) return null;
@@ -198,15 +227,43 @@ function ZoneMarkers({
   );
 }
 
+function HistoricalMarkers({ markers }: { markers: LiveMapProps['historicalMarkers'] }) {
+  if (!markers) return null;
+  return (
+    <>
+      {markers.map((event) => (
+        <CircleMarker
+          key={event.id}
+          center={[event.lat, event.lng]}
+          radius={5}
+          fillColor="#8a8a8a"
+          color="#ffffff"
+          weight={1}
+          fillOpacity={0.8}
+        >
+          <Popup>
+            <div style={{ fontFamily: 'General Sans, sans-serif' }}>
+              <strong>Historical event</strong><br />
+              {event.label}<br />
+              {new Date(event.date).toLocaleDateString()}
+              {event.severity ? <><br />Severity: {event.severity}</> : null}
+            </div>
+          </Popup>
+        </CircleMarker>
+      ))}
+    </>
+  );
+}
+
 function RiskRings({
-  zones,
-  riskByZone,
-  zoom,
-}: {
-  zones: LiveMapProps['zoneMarkers'];
-  riskByZone: Record<string, RiskAssessment>;
-  zoom: number;
-}) {
+   zones,
+   riskByZone,
+   zoom,
+ }: {
+   zones: LiveMapProps['zoneMarkers'];
+   riskByZone: Record<string, RiskUpdateEvent>;
+   zoom: number;
+ }) {
   if (!zones || zoom < 9) return null;
 
   return (
@@ -216,7 +273,6 @@ function RiskRings({
         const level = liveRisk ? toRudra(liveRisk.level) : zone.rudraLevel;
         const color = ZONE_COLOR[level];
         const score = liveRisk?.score ?? zone.shaktiScore ?? 0;
-        const radius = 300 + Math.max(0, Math.min(100, score)) * 15;
 
         return (
           <CircleMarker
@@ -383,7 +439,7 @@ function RainRadarOverlay({ opacity = 0.58 }: { opacity?: number }) {
 
   return (
     <TileLayer
-      key={tileUrl}
+      key={tileUrl} // remounts the layer whenever a newer radar frame is fetched
       url={tileUrl}
       opacity={opacity}
       maxNativeZoom={7}
@@ -423,6 +479,107 @@ function GlacierOverlay() {
   );
 }
 
+function EvacuationRoute({
+  route,
+}: {
+  route: LiveMapProps['evacuationRoute'];
+}) {
+  if (!route || !route.geometry?.coordinates?.length) return null;
+
+  // Convert [lng, lat] to [lat, lng] for Leaflet
+  const positions = route.geometry.coordinates.map(([lng, lat]) => [lat, lng] as [number, number]);
+
+  const props = route.properties;
+  const popupContent = (
+    <div style={{ fontFamily: 'General Sans, sans-serif', minWidth: 200 }}>
+      <strong style={{ color: rudraColors.evacuate }}>Evacuation Route</strong>
+      <br />
+      To: {props.shelter_name} ({props.shelter_type})
+      <br />
+      Capacity: {props.shelter_capacity} people
+      <br />
+      Distance: {props.distance_km.toFixed(1)} km
+      <br />
+      Est. Time: {props.duration_min.toFixed(1)} min
+    </div>
+  );
+
+  return (
+    <Polyline
+      positions={positions}
+      color={rudraColors.evacuate}
+      weight={4}
+      opacity={0.9}
+      dashArray="10, 5"
+      lineCap="round"
+      lineJoin="round"
+    >
+      <Popup>{popupContent}</Popup>
+    </Polyline>
+  );
+}
+
+function ShelterMarker({
+  shelter,
+}: {
+  shelter: LiveMapProps['shelterLocation'];
+}) {
+  if (!shelter) return null;
+
+  return (
+    <Marker
+      position={[shelter.lat, shelter.lng]}
+      icon={L.divIcon({
+        className: 'shelter-marker',
+        html: `
+          <div style="
+            width: 28px; height: 28px; border-radius: 50%;
+            background-color: #10B981;
+            border: 4px solid #ffffff;
+            box-shadow: 0 2px 8px rgba(0,0,0,0.3);
+            display: flex; align-items: center; justify-content: center;
+            font-size: 14px; font-weight: bold; color: white;
+          ">
+            🏠
+          </div>
+        `,
+        iconSize: [36, 36],
+        iconAnchor: [18, 36],
+        popupAnchor: [0, -36],
+      })}
+    >
+      <Popup>
+        <div style={{ fontFamily: 'General Sans, sans-serif' }}>
+          <strong style={{ color: '#10B981' }}>{shelter.name}</strong>
+          <br />
+          Type: {shelter.shelter_type.replace('_', ' ')}
+          <br />
+          Capacity: {shelter.capacity} people
+        </div>
+      </Popup>
+    </Marker>
+  );
+}
+
+function FitEvacuationBounds({ route, shelters, zone }: {
+  route: LiveMapProps['evacuationRoute'];
+  shelters: NonNullable<LiveMapProps['shelterLocations']>;
+  zone?: ZoneMarkerType;
+}) {
+  const map = useMap();
+  const boundsKey = JSON.stringify({ route: route?.geometry.coordinates, shelters, zone: zone?.id });
+
+  useEffect(() => {
+    const points: [number, number][] = [];
+    if (zone) points.push([zone.lat, zone.lng]);
+    route?.geometry.coordinates.forEach(([lng, lat]) => points.push([lat, lng]));
+    shelters.forEach((shelter) => points.push([shelter.lat, shelter.lng]));
+    if (points.length > 1) map.fitBounds(L.latLngBounds(points), { padding: [36, 36], maxZoom: 13 });
+  }, [map, boundsKey]);
+
+  return null;
+}
+
 function MapHUD({
   zoom,
   activeCount,
@@ -447,154 +604,64 @@ function MapHUD({
   );
 }
 
-function LiveRiskController({
-  onRisk,
-  onSensors,
-}: {
-  onRisk: (items: RiskAssessment[]) => void;
-  onSensors: (items: BackendSensor[]) => void;
-}) {
-  useEffect(() => {
-    let cancelled = false;
 
-    const load = async () => {
-      try {
-        const [risks, sensors] = await Promise.all([
-          fetchCurrentRisk(),
-          fetchLatestSensors(),
-        ]);
-        if (!cancelled) {
-          onRisk(risks);
-          onSensors(sensors);
-        }
-      } catch (error) {
-        console.warn('Live map data refresh failed:', error);
-      }
-    };
-
-    load();
-    const interval = window.setInterval(load, 30_000);
-
-    return () => {
-      cancelled = true;
-      window.clearInterval(interval);
-    };
-  }, [onRisk, onSensors]);
-
-  return null;
-}
-
-function useLiveRiskWebSocket(onRisk: (risk: RiskAssessment) => void) {
-  useEffect(() => {
-    const wsBase = import.meta.env.VITE_WS_URL;
-    if (!wsBase) return;
-
-    let socket: WebSocket | null = null;
-    let retryTimer: number | undefined;
-    let stopped = false;
-
-    const connect = () => {
-      if (stopped) return;
-
-      try {
-        socket = new WebSocket(`${wsBase.replace(/\/$/, '')}/ws/live`);
-
-        socket.onmessage = (event) => {
-          try {
-            const message = JSON.parse(event.data);
-            if (message?.type !== 'risk_update' || !message.zone_id) return;
-
-            onRisk({
-              id: `ws-${message.zone_id}-${Date.now()}`,
-              zone_id: message.zone_id,
-              score: Number(message.score ?? 0),
-              level: message.level ?? 'Safe',
-              confidence: Number(message.confidence ?? 0),
-              reasons: message.reasons ?? [],
-              recommended_action: message.recommended_action ?? '',
-              estimated_lead_time_minutes: Number(message.estimated_lead_time_minutes ?? 0),
-              data_quality_warning: message.data_quality_warning ?? '',
-              created_at: new Date().toISOString(),
-            });
-          } catch {
-            // Ignore malformed WebSocket messages.
-          }
-        };
-
-        socket.onclose = () => {
-          if (!stopped) retryTimer = window.setTimeout(connect, 5000);
-        };
-      } catch {
-        retryTimer = window.setTimeout(connect, 5000);
-      }
-    };
-
-    connect();
-
-    return () => {
-      stopped = true;
-      if (retryTimer) window.clearTimeout(retryTimer);
-      socket?.close();
-    };
-  }, [onRisk]);
-}
 
 export function LiveMap({
-  center = DEFAULT_CENTER,
-  zoom = DEFAULT_ZOOM,
-  showWeatherOverlay = null,
-  showRainRadar = true,
-  showGlaciers = true,
-  showHazardPolygons = true,
-  showSensors = true,
-  showRivers = true,
-  showLandslides = true,
-  showEvacuation = false,
-  floodRiskUrl,
-  landslideUrl,
-  riversUrl,
-  zoneMarkers = [],
-  showUserLocation = true,
-  onZoneSelect,
-  children,
+   center = DEFAULT_CENTER,
+   zoom = DEFAULT_ZOOM,
+   showWeatherOverlay = null,
+   showRainRadar = true,
+   showGlaciers = true,
+   showHazardPolygons = true,
+   showSensors = true,
+   showRivers = true,
+   showLandslides = true,
+   showEvacuation = false,
+   floodRiskUrl,
+   landslideUrl,
+   riversUrl,
+   zoneMarkers = [],
+   historicalMarkers = [],
+   liveRiskByZone,
+   liveSensorByZone,
+   showUserLocation = true,
+   onZoneSelect,
+   evacuationRoute = null,
+   shelterLocation = null,
+   shelterLocations = [],
+   children,
 }: LiveMapProps) {
-  const [currentZoom, setCurrentZoom] = useState(zoom);
-  const [riskList, setRiskList] = useState<RiskAssessment[]>([]);
-  const [sensors, setSensors] = useState<BackendSensor[]>([]);
+   const [currentZoom, setCurrentZoom] = useState(zoom);
 
-  const riskByZone = useMemo(
-    () => Object.fromEntries(riskList.map((risk) => [risk.zone_id, risk])),
-    [riskList],
-  );
+   const riskByZone = liveRiskByZone ?? {};
+   const sensorsList = liveSensorByZone 
+     ? Object.values(liveSensorByZone).map((event) => ({
+         ...event,
+         source: 'unknown',
+         rainfall_mm_24h: 0,
+         tilt_change_rate: 0,
+         battery_pct: 100,
+       } as BackendSensor))
+     : [];
 
-  const updateRisk = (risk: RiskAssessment) => {
-    setRiskList((current) => {
-      const next = current.filter((item) => item.zone_id !== risk.zone_id);
-      return [...next, risk];
-    });
-  };
-
-  useLiveRiskWebSocket(updateRisk);
-
-  const activeCount = zoneMarkers.filter((zone) => {
-    const risk = riskByZone[zone.id];
-    return (risk?.score ?? zone.shaktiScore ?? 0) >= 25;
-  }).length;
+   const activeCount = zoneMarkers.filter((zone) => {
+     const risk = riskByZone[zone.id];
+     return (risk?.score ?? zone.shaktiScore ?? 0) >= 25;
+   }).length;
 
   return (
     <div className="relative h-full w-full">
       <MapContainer
         center={center}
         zoom={zoom}
+        // Leaflet controls and panes use high internal z-index values. Giving
+        // the map its own z-index creates a stacking context, so those values
+        // remain inside the map instead of covering navigation or modals.
         className="relative z-0 h-full w-full"
         aria-label="Trishul live hazard map"
       >
         <InvalidateSizeOnMount />
         <ZoomMode onZoom={setCurrentZoom} />
-        <LiveRiskController
-          onRisk={setRiskList}
-          onSensors={setSensors}
-        />
 
         <LayersControl position="topright" collapsed>
           <LayersControl.BaseLayer checked name="OpenStreetMap">
@@ -706,19 +773,24 @@ export function LiveMap({
           onZoneSelect={onZoneSelect}
         />
 
-        {showSensors && (
-          <SensorMarkers
-            sensors={sensors}
-            zones={zoneMarkers}
-            zoom={currentZoom}
-          />
-        )}
+        <HistoricalMarkers markers={historicalMarkers} />
+
+{showSensors && (
+           <SensorMarkers
+             sensors={sensorsList}
+             zones={zoneMarkers}
+             zoom={currentZoom}
+           />
+         )}
 
         {showUserLocation && <UserLocationMarker />}
 
-        {showEvacuation && children}
+        <FitEvacuationBounds route={evacuationRoute} shelters={shelterLocations} zone={zoneMarkers[0]} />
+        {evacuationRoute && <EvacuationRoute route={evacuationRoute} />}
+        {shelterLocations.map((shelter) => <ShelterMarker key={shelter.id} shelter={shelter} />)}
+        {shelterLocation && !shelterLocations.some((shelter) => shelter.lat === shelterLocation.lat && shelter.lng === shelterLocation.lng) && <ShelterMarker shelter={shelterLocation} />}
 
-        {children}
+        {showEvacuation ? children : null}
       </MapContainer>
 
       <MapHUD zoom={currentZoom} activeCount={activeCount} />

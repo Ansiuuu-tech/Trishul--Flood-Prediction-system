@@ -74,6 +74,16 @@ export interface BackendSensor {
   recorded_at: string;
 }
 
+export interface BackendHistoricalEvent {
+  id: string;
+  zone_id: string;
+  event_type: string;
+  event_date: string;
+  severity: string;
+  fatalities: number;
+  description: string;
+}
+
 interface OWCurrent {
   main: { temp: number; humidity: number };
   wind: { speed: number };
@@ -272,13 +282,24 @@ export async function fetchZoneHistory(zoneId: string, limit = 50): Promise<{
   return resp.json();
 }
 
+export interface EvacuationShelter {
+  id: string;
+  zone_id: string;
+  name: string;
+  lat: number;
+  lng: number;
+  capacity: number;
+  shelter_type: string;
+  is_primary: boolean;
+}
+
 /** Fetch evacuation shelters for one zone. */
-export async function fetchZoneShelters(zoneId: string): Promise<Array<Record<string, unknown>>> {
+export async function fetchZoneShelters(zoneId: string): Promise<EvacuationShelter[]> {
   const resp = await apiFetch(
     `${API_URL}/api/zones/${encodeURIComponent(zoneId)}/shelters`,
   );
   if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
-  return resp.json();
+  return resp.json() as Promise<EvacuationShelter[]>;
 }
 
 async function fetchBackendHealth(): Promise<{ status: string; demo_mode: boolean } | null> {
@@ -420,12 +441,27 @@ export async function fetchDashboardData(): Promise<DashboardData> {
     };
   }
 
-  const selectedZone = apiZones[0]?.id || '';
-  const hasAlert = apiZones.some((z) => z.rudraLevel === 'evacuate' || z.rudraLevel === 'warn');
+  const levelPriority: Record<RudraLevel, number> = {
+    safe: 0,
+    watch: 1,
+    warn: 2,
+    evacuate: 3,
+  };
+  // The API sorts zones alphabetically, so `zones[0]` is normally Almora.
+  // Put the highest-severity live zone first and expose its ID explicitly so
+  // the dashboard's alert panel, route and evacuation centre match the zone
+  // that the simulator actually escalated.
+  const orderedZones = [...apiZones].sort((a, b) =>
+    levelPriority[b.rudraLevel] - levelPriority[a.rudraLevel]
+    || b.shaktiScore - a.shaktiScore
+    || a.name.localeCompare(b.name),
+  );
+  const selectedZone = orderedZones[0]?.id || '';
+  const hasAlert = orderedZones.some((z) => z.rudraLevel === 'evacuate' || z.rudraLevel === 'warn');
 
   return {
     weather,
-    zones: apiZones,
+    zones: orderedZones,
     selectedZone,
     isAlert: hasAlert,
     isDemo,
@@ -470,6 +506,16 @@ export async function fetchCurrentRisk(): Promise<RiskAssessment[]> {
   const resp = await apiFetch(`${API_URL}/api/risk/current`);
   if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
   return resp.json();
+}
+
+export async function fetchAllHistoricalEvents(): Promise<BackendHistoricalEvent[]> {
+    const resp = await fetch(`${API_URL}/api/historical-events`);
+    if (!resp.ok) throw new Error(`Backend error: ${resp.status}`);
+    return resp.json();
+}
+
+export async function fetchHealth(): Promise<{ status: string; demo_mode: boolean } | null> {
+  return fetchBackendHealth();
 }
 
 export async function fetchSimulationStatus(): Promise<SimulationStatus> {
@@ -517,6 +563,38 @@ export interface ORSRoute {
   duration: number;
 }
 
+export interface EvacuationRouteResponse {
+  zone_id: string;
+  zone_name: string;
+  shelter: {
+    id: string;
+    name: string;
+    lat: number;
+    lng: number;
+    capacity: number;
+    shelter_type: string;
+    is_primary: boolean;
+  };
+  route_geojson: {
+    type: string;
+    geometry: {
+      type: string;
+      coordinates: number[][];
+    };
+    properties: {
+      distance_km: number;
+      duration_min: number;
+      shelter_name: string;
+      shelter_type: string;
+      shelter_capacity: number;
+      zone_name: string;
+      zone_id: string;
+    };
+  };
+  distance_km: number;
+  duration_min: number;
+}
+
 export async function fetchEvacuationRoute(
   from: [number, number],
   to: [number, number],
@@ -548,4 +626,84 @@ export async function fetchEvacuationRoute(
     console.warn('ORS routing failed:', err);
     return null;
   }
+}
+
+export async function fetchEvacuationRouteFromBackend(zoneId: string): Promise<EvacuationRouteResponse | null> {
+  try {
+    const resp = await fetch(`${API_URL}/api/zones/${zoneId}/evacuation-route`);
+    if (!resp.ok) {
+      throw new Error(`Backend error: ${resp.status}`);
+    }
+    return resp.json();
+  } catch (err) {
+    console.warn('Backend evacuation route failed:', err);
+    return null;
+  }
+}
+
+export type SOSStatus = 'Pending' | 'Acknowledged' | 'Rescue Dispatched' | 'Resolved' | 'False Alarm';
+export type SOSSituation = 'Trapped' | 'Injured' | 'Medical Emergency' | 'Need Evacuation' | 'Other';
+
+export interface SOSRequest {
+  id: string;
+  reference_id: string;
+  phone_number: string;
+  name: string;
+  people_count: number;
+  situation_type: SOSSituation;
+  message: string;
+  latitude: number | null;
+  longitude: number | null;
+  location_source: 'gps' | 'map_pin' | 'unavailable';
+  nearest_zone_id: string | null;
+  nearest_zone_name: string;
+  district: string;
+  risk_level: string;
+  shelter_name: string;
+  shelter_latitude: number | null;
+  shelter_longitude: number | null;
+  status: SOSStatus;
+  status_note: string;
+  updated_by: string;
+  notification_channels: string[];
+  created_at: string;
+  updated_at: string;
+}
+
+export interface SOSCreatePayload {
+  phone_number: string;
+  name?: string;
+  people_count: number;
+  situation_type: SOSSituation;
+  message?: string;
+  latitude?: number;
+  longitude?: number;
+  location_source: 'gps' | 'map_pin' | 'unavailable';
+}
+
+async function sosError(response: Response): Promise<never> {
+  const data = await response.json().catch(() => null);
+  throw new Error(data?.detail || `SOS service error: ${response.status}`);
+}
+
+export async function submitSOS(payload: SOSCreatePayload): Promise<SOSRequest> {
+  const response = await fetch(`${API_URL}/api/sos`, {
+    method: 'POST', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify(payload),
+  });
+  if (!response.ok) return sosError(response);
+  return response.json();
+}
+
+export async function fetchSOSRequests(): Promise<SOSRequest[]> {
+  const response = await apiFetch(`${API_URL}/api/sos`);
+  if (!response.ok) return sosError(response);
+  return response.json();
+}
+
+export async function updateSOSStatus(id: string, status: SOSStatus, note = ''): Promise<SOSRequest> {
+  const response = await apiFetch(`${API_URL}/api/sos/${encodeURIComponent(id)}/status`, {
+    method: 'PATCH', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ status, note }),
+  });
+  if (!response.ok) return sosError(response);
+  return response.json();
 }

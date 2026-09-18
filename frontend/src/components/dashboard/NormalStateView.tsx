@@ -6,6 +6,7 @@ import { DashboardData, mockDashboardData } from '@/lib/mockData';
 import dashboardCalmBg from '@/assets/images/dashboard-bg.jpeg?url';
 import { Sparkline } from './Sparkline';
 import { LiveIndicator } from './LiveIndicator';
+import { EvacuationRouteResponse, EvacuationShelter, fetchEvacuationRouteFromBackend, fetchZoneShelters } from '@/lib/api';
 
 export function NormalStateView({ data = mockDashboardData }: { data: DashboardData }) {
   const zones = data.zones;
@@ -17,6 +18,8 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
 
   const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [activeIndex, setActiveIndex] = useState(0);
+  const [routeData, setRouteData] = useState<EvacuationRouteResponse | null>(null);
+  const [shelters, setShelters] = useState<EvacuationShelter[]>([]);
   const scrollRef = useRef<HTMLDivElement>(null);
   const slideRefs = useRef<(HTMLDivElement | null)[]>([]);
 
@@ -26,6 +29,25 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
   }, [zones, selectedDistrict]);
 
   const zone = displayedZones[activeIndex] ?? displayedZones[0] ?? zones[0];
+
+  useEffect(() => {
+    if (!zone) return;
+    let cancelled = false;
+    Promise.all([fetchEvacuationRouteFromBackend(zone.id), fetchZoneShelters(zone.id).catch(() => [])])
+      .then(([route, centres]) => {
+        if (!cancelled) {
+          setRouteData(route);
+          setShelters(centres);
+        }
+      });
+    return () => { cancelled = true; };
+  }, [zone?.id]);
+
+  const fallbackRoute = !routeData && shelters[0] && zone ? {
+    type: 'Feature',
+    geometry: { type: 'LineString', coordinates: [[zone.coordinates[1], zone.coordinates[0]], [shelters[0].lng, shelters[0].lat]] },
+    properties: { distance_km: 0, duration_min: 0, shelter_name: shelters[0].name, shelter_type: shelters[0].shelter_type, shelter_capacity: shelters[0].capacity, zone_name: zone.name, zone_id: zone.id },
+  } : null;
 
   // Track which slide is centered as the user scrolls/swipes
   useEffect(() => {
@@ -376,6 +398,8 @@ export function NormalStateView({ data = mockDashboardData }: { data: DashboardD
                   if (idx !== -1) scrollToIndex(idx);
                 }}
                 showUserLocation={true}
+                evacuationRoute={routeData?.route_geojson || fallbackRoute}
+                shelterLocations={shelters}
               />
             </div>
           </div>

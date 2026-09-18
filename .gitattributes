@@ -1,0 +1,7 @@
+# Force these as binary — never let Git touch line endings in them
+*.joblib binary
+*.csv binary
+*.png binary
+*.jpg binary
+*.jpeg binary
+*.gif binary

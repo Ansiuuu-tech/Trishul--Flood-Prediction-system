@@ -48,6 +48,12 @@ pnpm-debug.log*
 *.sqlite
 *.sqlite3
 
+# --- Backend runtime cache / generated data (regenerated at runtime, never commit) ---
+backend/cache/
+backend/data/
+# Python bytecode caches (defensive; __pycache__/ already covered above)
+*.pyc
+
 # --- OS ---
 .DS_Store
 .DS_Store?

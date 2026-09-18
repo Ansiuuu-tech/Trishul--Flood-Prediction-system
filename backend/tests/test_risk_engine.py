@@ -6,7 +6,7 @@ from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).resolve().parents[1]))
 
-from app.risk_engine import RiskInputs, classify, evaluate_risk
+from app.risk_engine import RiskInputs, classify, compute_hybrid_risk, evaluate_risk
 
 
 def _inputs(**overrides) -> RiskInputs:
@@ -87,3 +87,15 @@ def test_result_has_required_fields():
     assert result.recommended_action != ""
     assert result.estimated_lead_time_minutes >= 0
     assert result.model_version != ""
+
+
+def test_ml_high_risk_escalates_safe_but_never_deescalates(monkeypatch):
+    class HighRiskPredictor:
+        def predict_risk_level(self, reading):
+            return {"ml_probability": 0.9, "ml_flag": "HIGH_RISK", "threshold_used": 0.64}
+
+    monkeypatch.setattr("app.risk_engine.get_predictor", lambda: HighRiskPredictor())
+    reading = {"rainfall_24h": 100, "rainfall_3d": 200, "rainfall_7d": 300}
+
+    assert compute_hybrid_risk(reading, "Safe", 10)["final_level"] == "Warning"
+    assert compute_hybrid_risk(reading, "Evacuate", 90)["final_level"] == "Evacuate"

@@ -188,7 +188,9 @@ async def _tick_heavy_rain(db: Session, zones: list[Zone]) -> None:
 
 
 async def _tick_rapid_escalation(db: Session, zones: list[Zone]) -> None:
-    target_id = state.target_zone_id or zones[0].id
+    if not state.target_zone_id:
+        raise RuntimeError("rapid_escalation requires target_zone_id")
+    target_id = state.target_zone_id
     step_idx = min(state.ticks_elapsed, len(_ESCALATION_STEPS) - 1)
     r1, r3, r24, soil, tilt, tilt_rate, vib = _ESCALATION_STEPS[step_idx]
 
@@ -219,7 +221,9 @@ async def _tick_rapid_escalation(db: Session, zones: list[Zone]) -> None:
 
 
 async def _tick_sensor_failure(db: Session, zones: list[Zone]) -> None:
-    target_id = state.target_zone_id or zones[0].id
+    if not state.target_zone_id:
+        raise RuntimeError("sensor_failure requires target_zone_id")
+    target_id = state.target_zone_id
     for zone in zones:
         rng = _rng_for(zone.id, state.ticks_elapsed)
         if zone.id == target_id:

@@ -1,4 +1,4 @@
-import { useEffect, useState, useCallback } from 'react';
+import { useEffect, useMemo, useState, useCallback } from 'react';
 import { Link } from 'react-router-dom';
 import { Card, Button, RudraBadge } from '@/components/ui';
 import { ContourField } from '@/components/core';
@@ -57,6 +57,7 @@ export function SimulationControlPage() {
   const [sensors, setSensors] = useState<Record<string, BackendSensor>>({});
   const [status, setStatus] = useState<SimulationStatus | null>(null);
   const [selectedZone, setSelectedZone] = useState<string>('');
+  const [selectedDistrict, setSelectedDistrict] = useState<string>('All');
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [busy, setBusy] = useState<SimulationScenario | 'stop' | 'reset' | null>(null);
@@ -74,14 +75,18 @@ export function SimulationControlPage() {
       setSensors(Object.fromEntries(sensorList.map((sensor) => [sensor.zone_id, sensor])));
       setStatus(simStatus);
       setError(null);
-      if (!selectedZone && zonesList.length > 0) setSelectedZone(zonesList[0].id);
+      // Use a functional update: the polling interval keeps this callback
+      // alive, so reading `selectedZone` here would capture the initial empty
+      // value and reset every later operator choice to the first zone (Almora).
+      if (zonesList.length > 0) {
+        setSelectedZone((current) => current || zonesList[0].id);
+      }
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Could not reach the backend.');
     } finally {
       setLoading(false);
     }
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [selectedZone]);
+  }, []);
 
   useEffect(() => {
     refresh();
@@ -132,6 +137,20 @@ export function SimulationControlPage() {
     if (source === 'weather_api') return 'Live (rainfall + soil) · tilt/vibration: no sensor';
     if (source === 'simulator') return 'Simulated';
     return source ? `Source: ${source}` : 'No sensor reading';
+  };
+
+  const districts = useMemo(
+    () => [...new Set(zones.map((zone) => zone.district || 'Unassigned'))].sort(),
+    [zones],
+  );
+  const visibleZones = selectedDistrict === 'All'
+    ? zones
+    : zones.filter((zone) => (zone.district || 'Unassigned') === selectedDistrict);
+
+  const chooseDistrict = (district: string) => {
+    setSelectedDistrict(district);
+    const firstZone = district === 'All' ? zones[0] : zones.find((zone) => (zone.district || 'Unassigned') === district);
+    if (firstZone) setSelectedZone(firstZone.id);
   };
 
   return (
@@ -206,8 +225,21 @@ export function SimulationControlPage() {
             {loading ? (
               <p className="text-body text-ink-900/60 dark:text-mist-50/60">Loading zones…</p>
             ) : (
+              <>
+                <label className="mb-4 block max-w-sm">
+                  <span className="mb-1 block text-caption text-ink-900/60 dark:text-mist-50/60">District</span>
+                  <select
+                    value={selectedDistrict}
+                    onChange={(event) => chooseDistrict(event.target.value)}
+                    className="w-full rounded-btn border border-stone-300 bg-white px-3 py-2 text-ink-900 dark:border-moss-600 dark:bg-forest-800 dark:text-mist-50"
+                  >
+                    <option value="All">All districts</option>
+                    {districts.map((district) => <option key={district} value={district}>{district}</option>)}
+                  </select>
+                </label>
+                <p className="mb-3 text-caption text-ink-900/60 dark:text-mist-50/60">Selected target: <b>{zones.find((zone) => zone.id === selectedZone)?.name ?? 'None'}</b></p>
               <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-3">
-                {zones.map((zone) => {
+                {visibleZones.map((zone) => {
                   const level = risk[zone.id]?.level;
                   const source = sensors[zone.id]?.source;
                   const isSelected = selectedZone === zone.id;
@@ -233,6 +265,7 @@ export function SimulationControlPage() {
                   );
                 })}
               </div>
+              </>
             )}
           </Card>
 

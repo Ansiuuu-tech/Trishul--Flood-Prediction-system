@@ -1,4 +1,4 @@
-import { useEffect } from 'react';
+import { useEffect, useState } from 'react';
 import { BrowserRouter, Routes, Route, Navigate, Outlet, useLocation } from 'react-router-dom';
 import { Navigation, Footer } from '@/components/layout';
 import { SplashScreen } from '@/pages/SplashScreen';
@@ -23,6 +23,7 @@ import { SignupPage } from '@/pages/Signup';
 import { NotFoundPage } from '@/pages/NotFound';
 import { StatusPage } from '@/pages/Status';
 import { SimulationControlPage } from '@/pages/SimulationControl';
+import { SOSButton, SOSModal } from '@/components/sos';
 
 // Layout for marketing pages (with Navigation + Footer)
 function MarketingLayout() {
@@ -95,9 +96,12 @@ function AppRoutes() {
 }
 
 export default function App() {
+  const [sosOpen, setSosOpen] = useState(false);
   return (
     <BrowserRouter>
       <AppRoutes />
+      <SOSButton onClick={() => setSosOpen(true)} />
+      {sosOpen && <SOSModal onClose={() => setSosOpen(false)} />}
     </BrowserRouter>
   );
 }
