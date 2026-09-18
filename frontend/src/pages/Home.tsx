@@ -1,7 +1,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Button } from '@/components/ui';
-import { ContourField, DamageScene, LiveMap, TrishulMark } from '@/components/core';
+import { ContourField, DamageScene, LiveMap } from '@/components/core';
 import { LiveIndicator } from '@/components/dashboard';
 import { KAILASH_BG } from '@/components/core/FeaturePage';
 import { LiveTicker, LiveZoneStrip, TopRiskCallout } from '@/components/home';
@@ -71,7 +71,7 @@ export function HomePage() {
           <div className="hero-backdrop absolute inset-0" aria-hidden="true" />
           <ContourField className="absolute inset-0" opacity={0.08} />
           <div className="relative container-main w-full py-24 lg:py-32">
-            <div className="hero-layout grid items-end gap-10 lg:grid-cols-[minmax(0,1.15fr)_minmax(19rem,.65fr)]">
+            <div className="hero-layout flex items-end">
               <div className="max-w-4xl">
               <p className="font-mono text-caption text-cyan-200 tracking-[0.22em] uppercase mb-6 animate-fade-in">
                 Himalayan flood intelligence / live
@@ -96,11 +96,6 @@ export function HomePage() {
                 </Link>
               </div>
               </div>
-              <aside className="hero-signal-card hidden lg:block animate-fade-in" style={{ animationDelay: '220ms' }} aria-label="Trishul warning signals">
-                <TrishulMark size="xl" color="light" animate className="absolute -right-2 -top-12 h-64 w-auto text-cyan-200 opacity-80" />
-                <p className="relative font-mono text-[10px] tracking-[.22em] text-cyan-100 uppercase">Signal fusion</p>
-                <div className="relative mt-16 space-y-4 font-mono text-xs text-mist-50/75"><div className="flex justify-between border-b border-white/10 pb-3"><span>RAIN</span><span className="text-cyan-200">TRACKED</span></div><div className="flex justify-between border-b border-white/10 pb-3"><span>GROUND</span><span className="text-signal-amber">WATCH</span></div><div className="flex justify-between"><span>VIBRATION</span><span className="text-rudra-safe">NOMINAL</span></div></div>
-              </aside>
             </div>
           </div>
 
