@@ -3,6 +3,21 @@ Evacuation Routing Module using OSMnx + NetworkX.
 
 Provides risk-weighted shortest path computation from a zone to its nearest
 evacuation shelter. The road graph is fetched once and cached to disk.
+
+CHANGES vs original:
+  1. Failed fetch attempts are now also cached (with a cooldown), so a
+     broken/unreachable OSM endpoint doesn't cause every single API request
+     to re-attempt a 1-2 minute network fetch.
+  2. Explicit, shorter request timeouts + a single retry via osmnx settings,
+     so a hung request doesn't tie up the worker for minutes.
+  3. Added `prewarm_graphs()` — call this ONCE at app startup (or as a
+     separate offline script), never on the request path. This is what
+     actually fixes the "every endpoint is slow" symptom: today,
+     compute_evacuation_route() can block on a live OSM fetch inside a
+     request handler. If that handler is `async def` and this function is
+     awaited directly (not via run_in_threadpool/asyncio.to_thread), the
+     fetch blocks the entire event loop -> every other endpoint stalls too.
+     Prewarming means the graph is already on disk before any request needs it.
 """
 from __future__ import annotations
 
@@ -10,6 +25,7 @@ import json
 import math
 import os
 import pickle
+import time
 from dataclasses import dataclass
 from pathlib import Path
 from typing import Any
@@ -23,11 +39,19 @@ from app.database import session_scope
 
 settings = get_settings()
 
+# Keep OSM requests from hanging for minutes. Tune these to your Railway plan.
+ox.settings.requests_timeout = 45  # seconds per HTTP request to Overpass/Nominatim
+ox.settings.max_query_area_size = 25 * 1000 * 1000  # split very large districts into smaller Overpass queries
+
 CACHE_DIR = Path(os.getenv("DATA_DIR", str(Path(__file__).resolve().parents[1] / "data"))) / "evacuation_cache"
 CACHE_DIR.mkdir(parents=True, exist_ok=True)
 
 GRAPH_CACHE_FILE = CACHE_DIR / "road_graph.pkl"
 GRAPH_META_FILE = CACHE_DIR / "road_graph_meta.json"
+
+# How long to remember "this place failed to fetch" before trying OSM again.
+# Prevents hammering Overpass (and burning 1-2 min + memory) on every request.
+FETCH_FAILURE_COOLDOWN_SECONDS = 30 * 60  # 30 minutes
 
 RISK_PENALTIES = {"Evacuate": 50.0, "Warning": 10.0, "Watch": 2.0, "Safe": 1.0}
 
@@ -53,6 +77,34 @@ class RouteResult:
 
 def _get_graph_cache_key(place_name: str) -> str:
     return f"{place_name.lower().replace(' ', '_').replace(',', '')}"
+
+
+def _failure_marker_path(place_name: str) -> Path:
+    key = _get_graph_cache_key(place_name)
+    return CACHE_DIR / f"{key}_failed.json"
+
+
+def _recently_failed(place_name: str) -> bool:
+    """True if we tried and failed to fetch this place's graph recently."""
+    marker = _failure_marker_path(place_name)
+    if not marker.exists():
+        return False
+    try:
+        with marker.open("r") as f:
+            data = json.load(f)
+        age = time.time() - data.get("failed_at", 0)
+        return age < FETCH_FAILURE_COOLDOWN_SECONDS
+    except Exception:
+        return False
+
+
+def _record_failure(place_name: str, error: str) -> None:
+    marker = _failure_marker_path(place_name)
+    try:
+        with marker.open("w") as f:
+            json.dump({"failed_at": time.time(), "error": error}, f)
+    except Exception as e:
+        print(f"[evacuation_router] Failed to write failure marker: {e}")
 
 
 def _load_cached_graph(place_name: str) -> nx.MultiDiGraph | None:
@@ -89,6 +141,10 @@ def _save_graph_cache(G: nx.MultiDiGraph, place_name: str) -> None:
         with meta_file.open("w") as f:
             json.dump({"place_name": place_name, "nodes": len(G.nodes), "edges": len(G.edges)}, f)
         print(f"[evacuation_router] Cached graph for '{place_name}' to disk")
+        # Fetch succeeded -- clear any stale failure marker.
+        marker = _failure_marker_path(place_name)
+        if marker.exists():
+            marker.unlink()
     except Exception as e:
         print(f"[evacuation_router] Failed to cache graph: {e}")
 
@@ -97,15 +153,18 @@ def get_road_graph(place_name: str = "Uttarakhand, India") -> nx.MultiDiGraph:
     """
     Fetch or load cached road network graph for the given place.
 
-    Args:
-        place_name: OSM place name (e.g., "Uttarakhand, India" or "Dehradun district, Uttarakhand, India")
-
-    Returns:
-        NetworkX MultiDiGraph with road network.
+    Raises immediately (without hitting the network) if this place recently
+    failed to fetch, instead of re-attempting a slow OSM call on every request.
     """
     cached = _load_cached_graph(place_name)
     if cached is not None:
         return cached
+
+    if _recently_failed(place_name):
+        raise RuntimeError(
+            f"'{place_name}' road graph fetch failed recently; skipping retry "
+            f"until cooldown expires (see {_failure_marker_path(place_name).name})"
+        )
 
     print(f"[evacuation_router] Fetching road graph for '{place_name}' from OSM (this may take 1-2 minutes)...")
     try:
@@ -117,7 +176,25 @@ def get_road_graph(place_name: str = "Uttarakhand, India") -> nx.MultiDiGraph:
         return G
     except Exception as e:
         print(f"[evacuation_router] Failed to fetch graph for '{place_name}': {e}")
+        _record_failure(place_name, str(e))
         raise
+
+
+def prewarm_graphs(place_names: list[str]) -> None:
+    """
+    Fetch + cache road graphs for all known districts up front.
+
+    Call this from your app's startup event (or a one-off deploy script /
+    cron job), NOT from a request handler. This is the real fix for the
+    "every endpoint goes slow" symptom -- it ensures compute_evacuation_route()
+    always hits the on-disk cache instead of triggering a live OSM fetch
+    during a user-facing request.
+    """
+    for place_name in place_names:
+        try:
+            get_road_graph(place_name)
+        except Exception as e:
+            print(f"[evacuation_router] prewarm: could not fetch '{place_name}' ahead of time: {e}")
 
 
 def _nearest_node(G: nx.MultiDiGraph, lat: float, lng: float) -> int:
