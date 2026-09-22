@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import datetime as dt
+import threading
 
 from fastapi import Depends, FastAPI, WebSocket, WebSocketDisconnect
 from fastapi.middleware.cors import CORSMiddleware
@@ -9,6 +10,7 @@ from uvicorn.middleware.proxy_headers import ProxyHeadersMiddleware
 
 from app.config import get_settings
 from app.database import get_db, init_db, session_scope
+from app.evacuation_router import prewarm_graphs
 from app.models import HistoricalEvent
 from sqlalchemy.orm import Session
 from app.routers import alerts, auth, auth_oauth, risk, sensors, simulation, sos, weather, zones
@@ -18,6 +20,15 @@ from app.simulation_engine import start_simulation
 from app.weather_poller import start_weather_poller, stop_weather_poller
 from app.ws_manager import manager
 from app.ml.predict import get_predictor
+
+# Only the districts you're actually demoing evacuation routing for -- prewarming
+# all 13 Uttarakhand districts at once would itself take many minutes and a lot
+# of memory. Add more here once each one is confirmed fetchable from OSM.
+EVACUATION_DEMO_DISTRICTS = [
+    "Bageshwar district, Uttarakhand, India",
+    "Rudraprayag district, Uttarakhand, India",
+    "Chamoli district, Uttarakhand, India",
+]
 
 settings = get_settings()
 
@@ -74,6 +85,15 @@ async def on_startup() -> None:
         start_weather_poller()
     else:
         start_simulation("normal")
+
+    # Fetch + cache evacuation-route road graphs in the background so the
+    # first real user request never triggers a live 1-2 min OSM download on
+    # the request path. Runs in a plain thread (not asyncio) since osmnx's
+    # network calls are blocking; daemon=True so it never blocks shutdown.
+    threading.Thread(
+        target=prewarm_graphs, args=(EVACUATION_DEMO_DISTRICTS,), daemon=True
+    ).start()
+    print(f"[startup] Prewarming evacuation road graphs in background for: {EVACUATION_DEMO_DISTRICTS}")
 
 
 @app.on_event("shutdown")
